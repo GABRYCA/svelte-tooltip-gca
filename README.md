@@ -1,5 +1,7 @@
 # svelte-tooltip-gca
 
+<img src="static/favicon.png" height="80" alt="svelte-tooltip-gca logo">
+
 Modern, theme-aware tooltips for **Svelte 5** as a simple action:
 
 ```svelte

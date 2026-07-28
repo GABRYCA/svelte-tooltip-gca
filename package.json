@@ -3,7 +3,19 @@
 	"version": "1.0.0",
 	"description": "Modern, theme-aware tooltip action for Svelte 5 with auto light/dark themes and mobile-friendly",
 	"license": "MIT",
-	"author": "svelte-tooltip-gca",
+	"author": {
+		"name": "AnonymousGCA",
+		"email": "anonymousgca@anonymousgca.eu",
+		"url": "https://anonymousgca.eu"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/GABRYCA/svelte-tooltip-gca.git"
+	},
+	"bugs": {
+		"url": "https://github.com/GABRYCA/svelte-tooltip-gca/issues"
+	},
+	"homepage": "https://github.com/GABRYCA/svelte-tooltip-gca#readme",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run prepack",
@@ -35,6 +47,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.70.1",
 		"@sveltejs/package": "^2.5.8",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
