@@ -8,6 +8,10 @@ import type {
 	TooltipParams
 } from './types.js';
 
+/* ------------------------------------------------------------------ */
+/*  Defaults                                                           */
+/* ------------------------------------------------------------------ */
+
 const DEFAULTS: Omit<ResolvedTooltipOptions, 'content' | 'onShow' | 'onHide'> = {
 	html: false,
 	placement: 'top',
@@ -24,45 +28,34 @@ const DEFAULTS: Omit<ResolvedTooltipOptions, 'content' | 'onShow' | 'onHide'> = 
 	touchBehavior: 'tap',
 	longPressDuration: 400,
 	touchHideDelay: 3000,
-	showOnFocus: true
+	showOnFocus: true,
+	overflowBehavior: 'shift'
 };
 
 function resolveParams(params: TooltipParams | undefined | null): ResolvedTooltipOptions {
-	if (params == null || params === '') {
-		return { ...DEFAULTS, content: '' };
-	}
-	if (typeof params === 'string') {
-		return { ...DEFAULTS, content: params };
-	}
-	return {
-		...DEFAULTS,
-		...params,
-		content: params.content ?? ''
-	};
+	if (params == null || params === '') return { ...DEFAULTS, content: '' };
+	if (typeof params === 'string') return { ...DEFAULTS, content: params };
+	return { ...DEFAULTS, ...params, content: params.content ?? '' };
 }
 
 function isTouchLikePointer(type: string): boolean {
 	return type === 'touch' || type === 'pen';
 }
 
-/**
- * Svelte action that attaches a modern, theme-aware tooltip to any HTML element.
- *
- * @example
- * ```svelte
- * <script>
- *   import { tooltip } from 'svelte-tooltip-gca';
- * </script>
- *
- * <button use:tooltip={'Hello!'}>Hover me</button>
- *
- * <button use:tooltip={{ content: 'On the right', placement: 'right' }}>
- *   Options
- * </button>
- * ```
- */
+/** Feature-detect the Popover API once. */
+const supportsPopover =
+	typeof HTMLElement !== 'undefined' &&
+	typeof HTMLElement.prototype.showPopover === 'function';
+
+/* ------------------------------------------------------------------ */
+/*  Action                                                             */
+/* ------------------------------------------------------------------ */
+
 export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, params) => {
-	let options = resolveParams(params);
+	let options = $state(resolveParams(params));
+	let destroyed = false;
+
+	/* ---- imperative internals ---------------------------------------- */
 	let tooltipEl: HTMLElement | null = null;
 	let arrowEl: HTMLElement | null = null;
 	let visible = false;
@@ -72,33 +65,39 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
 	let isTouch = false;
 	let touchOpened = false;
-	/** Ignore mouse hover briefly after touch to avoid ghost mouse events. */
 	let ignoreMouseUntil = 0;
-	/** Ignore outside-dismiss briefly after opening via tap (same-gesture races). */
 	let ignoreDismissUntil = 0;
-	/** True when the current pointer gesture already handled tap toggle. */
 	let tapHandledByPointer = false;
 	let resizeObserver: ResizeObserver | null = null;
 	let mediaQuery: MediaQueryList | null = null;
+	let mutationObserver: MutationObserver | null = null;
+
+	$effect(() => {
+		const opts = options;
+
+		if (destroyed) return;
+
+		if (opts.disabled || !opts.content) {
+			if (visible) hide(true);
+			return;
+		}
+
+		if (visible && tooltipEl) {
+			applyContentAndTheme();
+			positionTooltip();
+		}
+	});
+
+	/* ---- timers ------------------------------------------------------ */
 
 	function clearTimers() {
-		if (showTimer) {
-			clearTimeout(showTimer);
-			showTimer = null;
-		}
-		if (hideTimer) {
-			clearTimeout(hideTimer);
-			hideTimer = null;
-		}
-		if (touchHideTimer) {
-			clearTimeout(touchHideTimer);
-			touchHideTimer = null;
-		}
-		if (longPressTimer) {
-			clearTimeout(longPressTimer);
-			longPressTimer = null;
-		}
+		if (showTimer) { clearTimeout(showTimer); showTimer = null; }
+		if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+		if (touchHideTimer) { clearTimeout(touchHideTimer); touchHideTimer = null; }
+		if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 	}
+
+	/* ---- DOM creation / destruction ---------------------------------- */
 
 	function createTooltip() {
 		if (tooltipEl || typeof document === 'undefined') return;
@@ -111,6 +110,11 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		tooltipEl.setAttribute('data-show', 'false');
 		tooltipEl.id = `svelte-tooltip-gca-${Math.random().toString(36).slice(2, 10)}`;
 
+		// Popover API → renders in the top-layer (above all stacking contexts)
+		if (supportsPopover) {
+			tooltipEl.setAttribute('popover', 'manual');
+		}
+
 		if (options.arrow) {
 			arrowEl = document.createElement('div');
 			arrowEl.className = 'svelte-tooltip-gca__arrow';
@@ -118,14 +122,13 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			tooltipEl.appendChild(arrowEl);
 		}
 
-		// Content wrapper so the arrow stays a sibling
 		const contentEl = document.createElement('div');
 		contentEl.className = 'svelte-tooltip-gca__content';
 		tooltipEl.appendChild(contentEl);
 
 		document.body.appendChild(tooltipEl);
 
-		// Link for a11y
+		// a11y link
 		const describedBy = node.getAttribute('aria-describedby');
 		if (describedBy) {
 			if (!describedBy.split(/\s+/).includes(tooltipEl.id)) {
@@ -139,6 +142,45 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		positionTooltip();
 	}
 
+	function destroyTooltipEl() {
+		if (!tooltipEl) return;
+
+		const id = tooltipEl.id;
+		const describedBy = node.getAttribute('aria-describedby');
+		if (describedBy) {
+			const next = describedBy.split(/\s+/).filter((x) => x && x !== id).join(' ');
+			if (next) node.setAttribute('aria-describedby', next);
+			else node.removeAttribute('aria-describedby');
+		}
+
+		// Close the popover before removing from DOM
+		if (supportsPopover && tooltipEl.matches(':popover-open')) {
+			try { tooltipEl.hidePopover(); } catch { /* noop */ }
+		}
+
+		tooltipEl.remove();
+		tooltipEl = null;
+		arrowEl = null;
+	}
+
+	/* ---- popover show / hide helpers --------------------------------- */
+
+	function openPopover() {
+		if (!tooltipEl || !supportsPopover) return;
+		if (!tooltipEl.matches(':popover-open')) {
+			try { tooltipEl.showPopover(); } catch { /* already open */ }
+		}
+	}
+
+	function closePopover() {
+		if (!tooltipEl || !supportsPopover) return;
+		if (tooltipEl.matches(':popover-open')) {
+			try { tooltipEl.hidePopover(); } catch { /* already closed */ }
+		}
+	}
+
+	/* ---- content / theme --------------------------------------------- */
+
 	function applyContentAndTheme() {
 		if (!tooltipEl) return;
 
@@ -151,7 +193,6 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			contentEl.textContent = options.content;
 		}
 
-		// Theme
 		const theme = resolveTheme(options.theme);
 		if (options.maxWidth !== undefined) {
 			theme.maxWidth =
@@ -161,10 +202,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 
 		tooltipEl.style.setProperty('--stt-duration', `${options.animationDuration}ms`);
 		tooltipEl.setAttribute('data-animation', options.animation ? 'true' : 'false');
-		// Placement attribute is owned by positionTooltip so we don't fight it here
-		// on every content refresh (avoids transform-origin transition jerks).
 
-		// Extra classes
 		tooltipEl.className = 'svelte-tooltip-gca';
 		if (options.class) {
 			for (const cls of options.class.split(/\s+/).filter(Boolean)) {
@@ -184,11 +222,8 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		}
 	}
 
-	/**
-	 * Position the tooltip without flashing it to (0,0) or toggling visibility.
-	 * Only width/height are needed for placement math, so the current top/left
-	 * can stay put while we measure — this removes the click/scroll "jerk".
-	 */
+	/* ---- positioning ------------------------------------------------- */
+
 	function positionTooltip() {
 		if (!tooltipEl) return;
 
@@ -196,54 +231,67 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		const tipWidth = tooltipEl.offsetWidth;
 		const tipHeight = tooltipEl.offsetHeight;
 
-		// Synthetic rect — computePosition only reads width/height.
 		const tipRect = {
 			width: tipWidth,
 			height: tipHeight,
-			top: 0,
-			left: 0,
-			bottom: tipHeight,
-			right: tipWidth,
-			x: 0,
-			y: 0,
+			top: 0, left: 0,
+			bottom: tipHeight, right: tipWidth,
+			x: 0, y: 0,
 			toJSON: () => ({})
 		} as DOMRect;
 
-		const { top, left, placement } = computePosition(
+		const { top, left, placement, arrowOffset } = computePosition(
 			targetRect,
 			tipRect,
 			options.placement,
-			options.offset
+			options.offset,
+			options.overflowBehavior
 		);
 
 		const nextTop = `${Math.round(top)}px`;
 		const nextLeft = `${Math.round(left)}px`;
 		const prevPlacement = tooltipEl.getAttribute('data-placement');
 
-		// If placement flips while visible, disable transform transition for one
-		// frame so transform-origin / translate changes don't animate as a jerk.
 		if (visible && prevPlacement && prevPlacement !== placement) {
-			const prevTransition = tooltipEl.style.transition;
+			const prev = tooltipEl.style.transition;
 			tooltipEl.style.transition = 'none';
 			tooltipEl.style.top = nextTop;
 			tooltipEl.style.left = nextLeft;
 			tooltipEl.setAttribute('data-placement', placement);
-			// Force reflow, then restore transition for opacity hide animations
+			applyArrowOffset(placement, arrowOffset);
 			void tooltipEl.offsetWidth;
-			tooltipEl.style.transition = prevTransition;
+			tooltipEl.style.transition = prev;
 			return;
 		}
 
 		tooltipEl.style.top = nextTop;
 		tooltipEl.style.left = nextLeft;
 		tooltipEl.setAttribute('data-placement', placement);
+		applyArrowOffset(placement, arrowOffset);
 	}
+
+	function applyArrowOffset(placement: string, arrowOffset: number) {
+		if (!tooltipEl) return;
+		if (arrowOffset < 0) {
+			tooltipEl.style.removeProperty('--stt-arrow-x');
+			tooltipEl.style.removeProperty('--stt-arrow-y');
+			return;
+		}
+		const px = `${Math.round(arrowOffset)}px`;
+		if (placement === 'top' || placement === 'bottom') {
+			tooltipEl.style.setProperty('--stt-arrow-x', px);
+			tooltipEl.style.removeProperty('--stt-arrow-y');
+		} else {
+			tooltipEl.style.setProperty('--stt-arrow-y', px);
+			tooltipEl.style.removeProperty('--stt-arrow-x');
+		}
+	}
+
+	/* ---- show / hide ------------------------------------------------- */
 
 	function show(immediate = false) {
 		if (options.disabled || !options.content) return;
 
-		// Already visible: refresh content/position only — do not re-run the
-		// enter animation or thrash timers (focus-after-hover used to jerk).
 		if (visible && tooltipEl) {
 			clearTimers();
 			applyContentAndTheme();
@@ -260,24 +308,21 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			applyContentAndTheme();
 			positionTooltip();
 
-			// Force reflow so the enter transition runs from the hidden state
+			openPopover();
+
 			void tooltipEl.offsetWidth;
 
 			tooltipEl.setAttribute('data-show', 'true');
 			visible = true;
 			options.onShow?.();
 
-			// Reposition after paint in case content reflowed (no visibility thrash)
 			requestAnimationFrame(() => {
 				if (visible) positionTooltip();
 			});
 		};
 
-		if (immediate || options.delay <= 0) {
-			doShow();
-		} else {
-			showTimer = setTimeout(doShow, options.delay);
-		}
+		if (immediate || options.delay <= 0) doShow();
+		else showTimer = setTimeout(doShow, options.delay);
 	}
 
 	function hide(immediate = false) {
@@ -297,6 +342,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 
 			const remove = () => {
 				if (tooltipEl && tooltipEl.getAttribute('data-show') === 'false') {
+					closePopover();
 					destroyTooltipEl();
 				}
 			};
@@ -308,31 +354,11 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			}
 		};
 
-		if (immediate || options.hideDelay <= 0) {
-			doHide();
-		} else {
-			hideTimer = setTimeout(doHide, options.hideDelay);
-		}
+		if (immediate || options.hideDelay <= 0) doHide();
+		else hideTimer = setTimeout(doHide, options.hideDelay);
 	}
 
-	function destroyTooltipEl() {
-		if (!tooltipEl) return;
-
-		const id = tooltipEl.id;
-		const describedBy = node.getAttribute('aria-describedby');
-		if (describedBy) {
-			const next = describedBy
-				.split(/\s+/)
-				.filter((x) => x && x !== id)
-				.join(' ');
-			if (next) node.setAttribute('aria-describedby', next);
-			else node.removeAttribute('aria-describedby');
-		}
-
-		tooltipEl.remove();
-		tooltipEl = null;
-		arrowEl = null;
-	}
+	/* ---- touch helpers ----------------------------------------------- */
 
 	function scheduleTouchHide() {
 		if (options.touchHideDelay <= 0) return;
@@ -345,30 +371,20 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		ignoreMouseUntil = Date.now() + 700;
 	}
 
-	/** Toggle sticky tooltip for tap / coarse-pointer interactions. */
 	function toggleTap() {
 		if (options.disabled || !options.content) return;
-
-		if (visible && touchOpened) {
-			hide(true);
-			return;
-		}
-
-		// Opening (or converting a hover-shown tip into a sticky tap tip)
+		if (visible && touchOpened) { hide(true); return; }
 		ignoreDismissUntil = Date.now() + 350;
 		show(true);
 		touchOpened = true;
 		scheduleTouchHide();
 	}
 
-	// —— Pointer / mouse ——
+	/* ---- event handlers ---------------------------------------------- */
+
 	function onPointerEnter(e: PointerEvent) {
-		if (isTouchLikePointer(e.pointerType)) {
-			markTouch();
-			return;
-		}
+		if (isTouchLikePointer(e.pointerType)) { markTouch(); return; }
 		if (Date.now() < ignoreMouseUntil) return;
-		// Sticky tap tip stays until dismissed — don't fight it with hover hide/show
 		if (touchOpened) return;
 		isTouch = false;
 		show();
@@ -377,12 +393,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	function onPointerLeave(e: PointerEvent) {
 		if (isTouchLikePointer(e.pointerType)) return;
 		if (Date.now() < ignoreMouseUntil) return;
-		// Sticky tips opened by tap should not close on mouse leave
 		if (touchOpened) return;
 		hide();
 	}
 
-	// —— Focus (keyboard) ——
 	function onFocus() {
 		if (!options.showOnFocus) return;
 		if (isTouch || Date.now() < ignoreMouseUntil) return;
@@ -397,12 +411,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		hide();
 	}
 
-	// —— Touch / pen via Pointer Events (more reliable than touch* alone) ——
 	function onPointerDown(e: PointerEvent) {
 		if (!isTouchLikePointer(e.pointerType)) return;
 		markTouch();
 		tapHandledByPointer = false;
-
 		if (options.touchBehavior === 'longpress') {
 			longPressTimer = setTimeout(() => {
 				show(true);
@@ -416,65 +428,32 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	function onPointerUp(e: PointerEvent) {
 		if (!isTouchLikePointer(e.pointerType)) return;
 		markTouch();
-
-		if (longPressTimer) {
-			clearTimeout(longPressTimer);
-			longPressTimer = null;
-		}
-
+		if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 		if (options.touchBehavior === 'tap') {
-			// Mark before toggling so the synthetic click (if any) is ignored.
-			// Do NOT preventDefault — that would break real button onClick handlers.
 			tapHandledByPointer = true;
 			toggleTap();
 		}
 	}
 
 	function onPointerCancel() {
-		if (longPressTimer) {
-			clearTimeout(longPressTimer);
-			longPressTimer = null;
-		}
+		if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 	}
 
-	/**
-	 * Click handling:
-	 * - After a touch pointer gesture: ignore (already toggled in pointerup).
-	 * - Coarse pointers / touch sessions: toggle sticky tip (tap behavior).
-	 * - Fine-pointer desktop: dismiss an open tip so click feels responsive
-	 *   (hover remains the way to open).
-	 */
 	function onClick(_e: MouseEvent) {
-		// Already handled by pointerup on this gesture — leave the event alone
-		// so the host button's own click handlers still run.
-		if (tapHandledByPointer) {
-			tapHandledByPointer = false;
-			return;
-		}
-
-		// Ghost click after touch
+		if (tapHandledByPointer) { tapHandledByPointer = false; return; }
 		if (Date.now() < ignoreMouseUntil) return;
 
 		const coarse =
 			typeof window !== 'undefined' &&
 			Boolean(window.matchMedia?.('(hover: none), (pointer: coarse)').matches);
 
-		if (options.touchBehavior === 'tap' && (coarse || isTouch)) {
-			toggleTap();
-			return;
-		}
-
-		// Desktop: clicking the trigger dismisses a visible tooltip.
-		// Sticky tap tips toggle off; hover tips simply close.
-		if (visible) {
-			hide(true);
-		}
+		if (options.touchBehavior === 'tap' && (coarse || isTouch)) { toggleTap(); return; }
+		if (visible) hide(true);
 	}
 
 	function onDocumentPointerDown(e: Event) {
 		if (!visible || !touchOpened) return;
 		if (Date.now() < ignoreDismissUntil) return;
-
 		const target = e.target as Node | null;
 		if (target && (node.contains(target) || tooltipEl?.contains(target))) return;
 		hide(true);
@@ -487,12 +466,12 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	function onThemeChange() {
 		if (visible && tooltipEl) {
 			applyContentAndTheme();
-			// Theme swap can change padding/font metrics slightly
 			positionTooltip();
 		}
 	}
 
-	// Attach listeners
+	/* ---- attach listeners -------------------------------------------- */
+
 	node.addEventListener('pointerenter', onPointerEnter);
 	node.addEventListener('pointerleave', onPointerLeave);
 	node.addEventListener('pointerdown', onPointerDown);
@@ -507,9 +486,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	window.addEventListener('resize', onScrollOrResize);
 
 	if (typeof ResizeObserver !== 'undefined') {
-		resizeObserver = new ResizeObserver(() => {
-			if (visible) positionTooltip();
-		});
+		resizeObserver = new ResizeObserver(() => { if (visible) positionTooltip(); });
 		resizeObserver.observe(node);
 	}
 
@@ -518,8 +495,6 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		mediaQuery.addEventListener?.('change', onThemeChange);
 	}
 
-	// Mutation observer for class/data-theme changes on html/body
-	let mutationObserver: MutationObserver | null = null;
 	if (typeof MutationObserver !== 'undefined' && typeof document !== 'undefined') {
 		mutationObserver = new MutationObserver(onThemeChange);
 		mutationObserver.observe(document.documentElement, {
@@ -534,36 +509,15 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		}
 	}
 
+	/* ---- action contract --------------------------------------------- */
+
 	return {
 		update(newParams: TooltipParams | undefined) {
-			const wasVisible = visible;
-			const prev = options;
 			options = resolveParams(newParams);
-
-			if (options.disabled || !options.content) {
-				if (wasVisible) hide(true);
-				return;
-			}
-
-			if (wasVisible && tooltipEl) {
-				const contentChanged =
-					prev.content !== options.content ||
-					prev.html !== options.html ||
-					prev.theme !== options.theme ||
-					prev.class !== options.class ||
-					prev.arrow !== options.arrow ||
-					prev.maxWidth !== options.maxWidth ||
-					prev.animation !== options.animation ||
-					prev.animationDuration !== options.animationDuration;
-
-				const positionChanged =
-					prev.placement !== options.placement || prev.offset !== options.offset;
-
-				if (contentChanged) applyContentAndTheme();
-				if (contentChanged || positionChanged) positionTooltip();
-			}
 		},
+
 		destroy() {
+			destroyed = true;
 			clearTimers();
 			hide(true);
 			destroyTooltipEl();
@@ -588,5 +542,4 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	};
 };
 
-// Re-export types used by consumers of the action
 export type { TooltipParams, TooltipOptions };

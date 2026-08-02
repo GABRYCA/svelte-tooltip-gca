@@ -12,9 +12,13 @@ Modern, theme-aware tooltips for **Svelte 5** as a simple action:
 - **Auto light and dark** theme detection
 - **Custom themes** via a plain object
 - **Desktop and mobile friendly** (hover, focus, tap, long-press)
-- **Never clipped**, portals to `document.body` with proper z-index
+- **Top-layer rendering** via the native Popover API — never clipped, immune to z-index wars
 - Smooth **enter and leave animation**
-- Auto **placement flip** near viewport edges
+- **Smart positioning**: stays on the preferred side, shifts to fit, and the arrow re-aims at the target
+
+Demo and Docs: [Github Pages](https://gabryca.github.io/svelte-tooltip-gca/)
+
+NPM Repo: [npmjs.com/package/svelte-tooltip-gca](https://www.npmjs.com/package/svelte-tooltip-gca)
 
 ---
 
@@ -58,7 +62,8 @@ Peer dependency: `svelte` ^5.0.0
 | --- | --- | --- | --- |
 | `content` | `string` | — | Tooltip text (required for object form) |
 | `html` | `boolean` | `false` | Render content as HTML (trusted only) |
-| `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | Preferred side; auto-flips |
+| `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | Preferred side |
+| `overflowBehavior` | `'shift' \| 'flip'` | `'shift'` | Viewport-overflow strategy (see below) |
 | `theme` | `'auto' \| 'light' \| 'dark' \| TooltipTheme` | `'auto'` | Theme mode or custom object |
 | `offset` | `number` | `8` | Gap from target (px) |
 | `delay` | `number` | `120` | Show delay (ms) |
@@ -74,6 +79,28 @@ Peer dependency: `svelte` ^5.0.0
 | `touchHideDelay` | `number` | `3000` | Auto-hide on touch (`0` = off) |
 | `showOnFocus` | `boolean` | `true` | Show on keyboard focus |
 | `onShow` / `onHide` | `() => void` | — | Lifecycle callbacks |
+
+### Overflow behavior
+
+By default (`'shift'`) the tooltip **stays on its preferred side**, slides along the
+cross-axis to remain fully visible, and the **arrow re-aims** at the target element
+even when the panel is off-centre. It only flips to the opposite side when there is
+no room at all on the primary axis.
+
+Pass `overflowBehavior: 'flip'` to restore the legacy strategy (try opposite, then
+perpendicular sides):
+
+```svelte
+<button
+  use:tooltip={{
+    content: 'I flip to the other side when space is tight',
+    placement: 'top',
+    overflowBehavior: 'flip'
+  }}
+>
+  Legacy flip
+</button>
+```
 
 ---
 
@@ -136,7 +163,11 @@ Theme fields: `background`, `color`, `border`, `shadow`, `borderRadius`, `fontSi
 
 ## Demo
 
-This repository is a SvelteKit library project. Run the docs demo locally:
+Hosted demo: [Github Pages](https://gabryca.github.io/svelte-tooltip-gca/)
+
+or:
+
+Run the docs demo locally:
 
 ```sh
 npm install

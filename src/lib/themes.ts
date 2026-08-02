@@ -107,12 +107,10 @@ export function resolveTheme(theme: TooltipThemeMode | TooltipTheme): Required<T
 		return detectDarkMode() ? { ...darkTheme } : { ...lightTheme };
 	}
 
-	// Custom partial theme: base on auto detection so only overrides need specifying
 	const base = detectDarkMode() ? darkTheme : lightTheme;
 	return {
 		...base,
 		...theme,
-		// ensure arrowSize is always a string with unit for CSS
 		arrowSize:
 			theme.arrowSize !== undefined
 				? typeof theme.arrowSize === 'number'

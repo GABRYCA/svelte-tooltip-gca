@@ -13,7 +13,7 @@
  * ```
  */
 
-export { tooltip } from './tooltip.js';
+export { tooltip } from './tooltip.svelte.js';
 export { lightTheme, darkTheme, detectDarkMode, resolveTheme } from './themes.js';
 
 export type {
@@ -22,5 +22,6 @@ export type {
 	TooltipPlacement,
 	TooltipTheme,
 	TooltipThemeMode,
+	TooltipOverflowBehavior,
 	ResolvedTooltipOptions
 } from './types.js';
