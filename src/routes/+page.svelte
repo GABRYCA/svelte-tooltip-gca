@@ -421,7 +421,8 @@ import type {
                     <h3>Mobile / touch</h3>
                     <p>
                         On touch devices, tap toggles the tooltip (tap again or outside to dismiss).
-                        Long-press is optional. On desktop, hover opens and a click dismisses.
+                        Long-press is optional and is cancelled if the finger moves — so it never
+                        fights with scrolling. On desktop, hover opens and a click dismisses.
                     </p>
                     <div class="demo-row wrap">
                         <button
@@ -706,6 +707,29 @@ import type {
                 <h3>Exports</h3>
                 <pre class="code large"><code>{codeExports}</code></pre>
             </div>
+
+            <div class="card" style="margin-top: 1rem;">
+                <h3>Behavior notes</h3>
+                <ul class="notes">
+                    <li>
+                        <strong>Escape dismisses.</strong> An open tooltip closes when you press
+                        <code>Escape</code>, matching native popover expectations.
+                    </li>
+                    <li>
+                        <strong>Reduced motion.</strong> When the OS reports
+                        <code>prefers-reduced-motion: reduce</code>, the enter/leave animation is
+                        disabled automatically.
+                    </li>
+                    <li>
+                        <strong>Long-press cancels on movement.</strong> On touch, a long-press that
+                        turns into a scroll or drag is cancelled instead of opening the tooltip.
+                    </li>
+                    <li>
+                        <strong>Live updates.</strong> Changing the action's params (content, theme,
+                        placement…) while the tooltip is open re-renders and repositions it in place.
+                    </li>
+                </ul>
+            </div>
         </section>
 
         <section class="section features">
@@ -727,11 +751,20 @@ import type {
                     <p>Tap or long-press on touch devices, with outside-dismiss and auto-hide.</p>
                 </div>
                 <div class="feature">
+                    <span class="feature-icon">🎹</span>
+                    <h3>Keyboard and a11y</h3>
+                    <p>
+                        Opens on focus, dismisses with <code>Escape</code>, wired up via
+                        <code>aria-describedby</code>, and respects
+                        <code>prefers-reduced-motion</code>.
+                    </p>
+                </div>
+                <div class="feature">
                     <span class="feature-icon">🚀</span>
                     <h3>Top-layer rendering</h3>
                     <p>
                         Uses the native <code>popover</code> API so tooltips live in the
-                        browser's top-layer — never clipped, never behind a modal.
+                        browser's top-layer, never clipped, never behind a modal.
                     </p>
                 </div>
             </div>
@@ -1052,6 +1085,25 @@ import type {
     }
 
     .hint code {
+        font-size: 0.85em;
+        background: var(--bg-muted);
+        padding: 0.05em 0.3em;
+        border-radius: 4px;
+    }
+
+    .notes {
+        margin: 0;
+        padding-left: 1.25rem;
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .notes li {
+        font-size: 0.9rem;
+        color: var(--fg-muted);
+    }
+
+    .notes li code {
         font-size: 0.85em;
         background: var(--bg-muted);
         padding: 0.05em 0.3em;

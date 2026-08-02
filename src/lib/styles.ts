@@ -124,6 +124,13 @@ export function ensureStyles(): void {
 	border-top: none;
 	border-right: none;
 }
+
+/* ---- reduced motion --------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+	.svelte-tooltip-gca {
+		transition: none;
+	}
+}
 `.trim();
 
 	document.head.appendChild(style);

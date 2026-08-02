@@ -12,8 +12,9 @@ Modern, theme-aware tooltips for **Svelte 5** as a simple action:
 - **Auto light and dark** theme detection
 - **Custom themes** via a plain object
 - **Desktop and mobile friendly** (hover, focus, tap, long-press)
+- **Keyboard friendly**: opens on focus, dismisses with `Escape`
 - **Top-layer rendering** via the native Popover API — never clipped, immune to z-index wars
-- Smooth **enter and leave animation**
+- Smooth **enter and leave animation** (respects `prefers-reduced-motion`)
 - **Smart positioning**: stays on the preferred side, shifts to fit, and the arrow re-aims at the target
 
 Demo and Docs: [Github Pages](https://gabryca.github.io/svelte-tooltip-gca/)
@@ -156,8 +157,16 @@ Theme fields: `background`, `color`, `border`, `shadow`, `borderRadius`, `fontSi
 ## Mobile
 
 - **`touchBehavior: 'tap'`** (default), first tap shows, second or outside tap hides
-- **`touchBehavior: 'longpress'`**, press and hold to show
+- **`touchBehavior: 'longpress'`**, press and hold to show (cancelled if the finger moves — e.g. to scroll)
 - Auto-hides after `touchHideDelay` (default 3s)
+
+## Accessibility
+
+- Tooltips render with `role="tooltip"` and are wired up via `aria-describedby`
+- Focusable elements open the tooltip on keyboard focus
+- Pressing `Escape` dismisses an open tooltip
+- Animations are disabled when the user prefers reduced motion
+  (`prefers-reduced-motion: reduce`)
 
 ---
 

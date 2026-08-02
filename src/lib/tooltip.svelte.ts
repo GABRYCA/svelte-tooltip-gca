@@ -71,6 +71,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	let resizeObserver: ResizeObserver | null = null;
 	let mediaQuery: MediaQueryList | null = null;
 	let mutationObserver: MutationObserver | null = null;
+	let rafId: number | null = null;
+	let longPressActive = false;
+	let longPressStartX = 0;
+	let longPressStartY = 0;
 
 	$effect(() => {
 		const opts = options;
@@ -78,6 +82,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		if (destroyed) return;
 
 		if (opts.disabled || !opts.content) {
+			clearTimers();
 			if (visible) hide(true);
 			return;
 		}
@@ -108,6 +113,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		tooltipEl.className = 'svelte-tooltip-gca';
 		tooltipEl.setAttribute('role', 'tooltip');
 		tooltipEl.setAttribute('data-show', 'false');
+		tooltipEl.setAttribute('aria-hidden', 'true');
 		tooltipEl.id = `svelte-tooltip-gca-${Math.random().toString(36).slice(2, 10)}`;
 
 		// Popover API → renders in the top-layer (above all stacking contexts)
@@ -306,13 +312,14 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			if (!tooltipEl) return;
 
 			applyContentAndTheme();
-			positionTooltip();
 
 			openPopover();
+			positionTooltip();
 
 			void tooltipEl.offsetWidth;
 
 			tooltipEl.setAttribute('data-show', 'true');
+			tooltipEl.setAttribute('aria-hidden', 'false');
 			visible = true;
 			options.onShow?.();
 
@@ -336,6 +343,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			}
 
 			tooltipEl.setAttribute('data-show', 'false');
+			tooltipEl.setAttribute('aria-hidden', 'true');
 			visible = false;
 			touchOpened = false;
 			options.onHide?.();
@@ -391,7 +399,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	}
 
 	function onPointerLeave(e: PointerEvent) {
-		if (isTouchLikePointer(e.pointerType)) return;
+		if (isTouchLikePointer(e.pointerType)) {
+			cancelLongPress();
+			return;
+		}
 		if (Date.now() < ignoreMouseUntil) return;
 		if (touchOpened) return;
 		hide();
@@ -416,7 +427,11 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		markTouch();
 		tapHandledByPointer = false;
 		if (options.touchBehavior === 'longpress') {
+			longPressActive = true;
+			longPressStartX = e.clientX;
+			longPressStartY = e.clientY;
 			longPressTimer = setTimeout(() => {
+				longPressActive = false;
 				show(true);
 				touchOpened = true;
 				ignoreDismissUntil = Date.now() + 350;
@@ -425,10 +440,23 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		}
 	}
 
+	function onPointerMove(e: PointerEvent) {
+		if (!isTouchLikePointer(e.pointerType)) return;
+		if (!longPressActive) return;
+		const dx = Math.abs(e.clientX - longPressStartX);
+		const dy = Math.abs(e.clientY - longPressStartY);
+		if (dx + dy > 10) cancelLongPress();
+	}
+
+	function cancelLongPress() {
+		longPressActive = false;
+		if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+	}
+
 	function onPointerUp(e: PointerEvent) {
 		if (!isTouchLikePointer(e.pointerType)) return;
 		markTouch();
-		if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+		cancelLongPress();
 		if (options.touchBehavior === 'tap') {
 			tapHandledByPointer = true;
 			toggleTap();
@@ -436,7 +464,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	}
 
 	function onPointerCancel() {
-		if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+		cancelLongPress();
 	}
 
 	function onClick(_e: MouseEvent) {
@@ -460,7 +488,17 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	}
 
 	function onScrollOrResize() {
-		if (visible) positionTooltip();
+		if (!visible) return;
+		if (rafId !== null) return;
+		rafId = requestAnimationFrame(() => {
+			rafId = null;
+			positionTooltip();
+		});
+	}
+
+	function onKeyDown(e: KeyboardEvent) {
+		if (e.key !== 'Escape') return;
+		if (visible) hide(true);
 	}
 
 	function onThemeChange() {
@@ -475,6 +513,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	node.addEventListener('pointerenter', onPointerEnter);
 	node.addEventListener('pointerleave', onPointerLeave);
 	node.addEventListener('pointerdown', onPointerDown);
+	node.addEventListener('pointermove', onPointerMove);
 	node.addEventListener('pointerup', onPointerUp);
 	node.addEventListener('pointercancel', onPointerCancel);
 	node.addEventListener('focus', onFocus);
@@ -484,6 +523,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	document.addEventListener('pointerdown', onDocumentPointerDown, true);
 	window.addEventListener('scroll', onScrollOrResize, true);
 	window.addEventListener('resize', onScrollOrResize);
+	window.addEventListener('keydown', onKeyDown);
 
 	if (typeof ResizeObserver !== 'undefined') {
 		resizeObserver = new ResizeObserver(() => { if (visible) positionTooltip(); });
@@ -519,12 +559,15 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		destroy() {
 			destroyed = true;
 			clearTimers();
+			cancelLongPress();
+			if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
 			hide(true);
 			destroyTooltipEl();
 
 			node.removeEventListener('pointerenter', onPointerEnter);
 			node.removeEventListener('pointerleave', onPointerLeave);
 			node.removeEventListener('pointerdown', onPointerDown);
+			node.removeEventListener('pointermove', onPointerMove);
 			node.removeEventListener('pointerup', onPointerUp);
 			node.removeEventListener('pointercancel', onPointerCancel);
 			node.removeEventListener('focus', onFocus);
@@ -534,6 +577,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			document.removeEventListener('pointerdown', onDocumentPointerDown, true);
 			window.removeEventListener('scroll', onScrollOrResize, true);
 			window.removeEventListener('resize', onScrollOrResize);
+			window.removeEventListener('keydown', onKeyDown);
 
 			resizeObserver?.disconnect();
 			mutationObserver?.disconnect();
