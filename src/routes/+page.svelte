@@ -1,17 +1,21 @@
 <script lang="ts">
     import { tooltip } from "$lib/index.js";
-    import type { TooltipTheme } from "$lib/index.js";
+    import type { TooltipTheme, TooltipPlacement } from "$lib/index.js";
 
     type ThemeMode = "auto" | "light" | "dark";
 
     let pageTheme = $state<ThemeMode>("auto");
+    let copiedId = $state<string | null>(null);
 
+    const codeInstall = "npm install svelte-tooltip-gca";
+
+    // Clean Solid Brand Theme
     const brandTheme: TooltipTheme = {
-        background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+        background: "#0284c7",
         color: "#ffffff",
         border: "transparent",
-        shadow: "0 12px 28px -8px rgba(99, 102, 241, 0.55)",
-        borderRadius: "10px",
+        shadow: "0 8px 20px rgba(2, 132, 199, 0.25)",
+        borderRadius: "8px",
         fontSize: "13px",
         padding: "8px 12px",
     };
@@ -20,7 +24,7 @@
         background: "#059669",
         color: "#ecfdf5",
         border: "transparent",
-        shadow: "0 10px 24px -8px rgba(5, 150, 105, 0.45)",
+        shadow: "0 8px 20px rgba(5, 150, 105, 0.25)",
         borderRadius: "999px",
         fontSize: "12px",
         fontWeight: "600",
@@ -31,17 +35,112 @@
         background: "#fffbeb",
         color: "#92400e",
         border: "#f59e0b",
-        shadow: "0 8px 20px -6px rgba(245, 158, 11, 0.35)",
+        shadow: "0 6px 16px rgba(245, 158, 11, 0.2)",
         borderRadius: "8px",
         fontSize: "13px",
         padding: "8px 12px",
     };
 
+    // Playground State
+    let pgContent = $state("✨ Smooth Svelte 5 tooltip!");
+    let pgPlacement = $state<TooltipPlacement>("top");
+    let pgDelay = $state(120);
+    let pgDuration = $state(200);
+    let pgOffset = $state(8);
+    let pgArrow = $state(true);
+    let pgPreset = $state("ocean");
+
+    const playgroundPresets: Record<string, { name: string; theme: TooltipTheme }> = {
+        ocean: {
+            name: "Ocean Blue",
+            theme: {
+                background: "#0284c7",
+                color: "#ffffff",
+                border: "transparent",
+                shadow: "0 8px 20px rgba(2, 132, 199, 0.25)",
+                borderRadius: "8px",
+                padding: "8px 14px",
+                fontSize: "13px",
+                fontWeight: "600",
+            },
+        },
+        svelte: {
+            name: "Svelte Orange",
+            theme: {
+                background: "#ff3e00",
+                color: "#ffffff",
+                border: "transparent",
+                shadow: "0 8px 20px rgba(255, 62, 0, 0.25)",
+                borderRadius: "8px",
+                padding: "8px 14px",
+                fontSize: "13px",
+                fontWeight: "600",
+            },
+        },
+        darkSlate: {
+            name: "Dark Slate",
+            theme: {
+                background: "#0f172a",
+                color: "#f8fafc",
+                border: "1px solid #334155",
+                shadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
+                borderRadius: "8px",
+                padding: "8px 14px",
+                fontSize: "13px",
+            },
+        },
+        emerald: {
+            name: "Emerald Green",
+            theme: {
+                background: "#059669",
+                color: "#ecfdf5",
+                border: "transparent",
+                shadow: "0 8px 20px rgba(5, 150, 105, 0.25)",
+                borderRadius: "999px",
+                padding: "6px 16px",
+                fontSize: "12px",
+                fontWeight: "600",
+            },
+        },
+    };
+
+    let currentPlaygroundTheme = $derived(
+        playgroundPresets[pgPreset]?.theme || playgroundPresets.ocean.theme
+    );
+
+    let playgroundOptions = $derived({
+        content: pgContent,
+        placement: pgPlacement,
+        delay: pgDelay,
+        animationDuration: pgDuration,
+        offset: pgOffset,
+        arrow: pgArrow,
+        theme: currentPlaygroundTheme,
+    });
+
+    let playgroundGeneratedCode = $derived(
+        `<script>\n` +
+        `  import { tooltip } from 'svelte-tooltip-gca';\n` +
+        `</` +
+        `script>\n\n` +
+        `<button\n` +
+        `  use:tooltip={{\n` +
+        `    content: '${pgContent.replace(/'/g, "\\'")}',\n` +
+        `    placement: '${pgPlacement}',\n` +
+        `    delay: ${pgDelay},\n` +
+        `    animationDuration: ${pgDuration},\n` +
+        `    offset: ${pgOffset},\n` +
+        `    arrow: ${pgArrow},\n` +
+        `    theme: ${JSON.stringify(currentPlaygroundTheme, null, 6)}\n` +
+        `  }}\n` +
+        `>\n` +
+        `  Hover Me\n` +
+        `</button>`
+    );
+
     const codeImport = "import { tooltip } from 'svelte-tooltip-gca';";
 
-    const codeUse = `<button use:tooltip={'Hello world'}>
-  Hover me
-</button>`;
+    const codeUse = `<button use:tooltip={'Hello world'}>\n  Hover me\n</button>`;
 
     const codeMinimal =
         `<script>\n` +
@@ -65,15 +164,15 @@
 import type { TooltipTheme } from 'svelte-tooltip-gca';
 
 const myTheme: TooltipTheme = {
-  background: '#0ea5e9',
-  color: '#fff',
-  borderRadius: '12px',
-  shadow: '0 12px 30px rgba(14, 165, 233, 0.35)',
+  background: '#0284c7',
+  color: '#ffffff',
+  borderRadius: '8px',
+  shadow: '0 8px 20px rgba(2, 132, 199, 0.25)',
   padding: '8px 14px',
   fontSize: '13px'
 };
 
-// <button use:tooltip={{ content: 'Sky blue', theme: myTheme }}>…</button>`;
+// <button use:tooltip={{ content: 'Ocean blue', theme: myTheme }}>…</button>`;
 
     const codeExports = `import {
   tooltip,          // Svelte action
@@ -90,6 +189,16 @@ import type {
   TooltipThemeMode,
   TooltipPlacement
 } from 'svelte-tooltip-gca';`;
+
+    function copyToClipboard(text: string, id: string) {
+        if (typeof navigator !== "undefined" && navigator.clipboard) {
+            navigator.clipboard.writeText(text);
+            copiedId = id;
+            setTimeout(() => {
+                if (copiedId === id) copiedId = null;
+            }, 2000);
+        }
+    }
 
     function setTheme(mode: ThemeMode) {
         pageTheme = mode;
@@ -117,10 +226,11 @@ import type {
                 </div>
             </div>
             <nav class="nav">
+                <a href="#playground">Playground</a>
                 <a href="#quick-start">Quick start</a>
                 <a href="#examples">Examples</a>
-                <a href="#api">API</a>
                 <a href="#theming">Theming</a>
+                <a href="#api">API</a>
             </nav>
             <div class="theme-toggle" role="group" aria-label="Page theme">
                 <button
@@ -150,29 +260,64 @@ import type {
 
     <main>
         <section class="hero">
-            <p class="eyebrow">npm package · Svelte action</p>
+            <p class="eyebrow">npm package · Svelte 5 action</p>
             <h1>
                 Modern tooltips for<br />
-                <span class="gradient">Svelte 5</span>
+                <span class="svelte-text">Svelte 5</span>
             </h1>
             <p class="lede">
                 Drop a <code>use:tooltip</code> action on any element. Auto light/dark
-                themes, smooth animation, mobile-friendly, and never hidden behind
+                themes, smooth animations, mobile touch-friendly, and never hidden behind
                 other UI.
             </p>
+
+            <!-- Quick Command Copy Pill -->
+            <div class="install-pill-wrap">
+                <div class="install-pill">
+                    <span class="prompt-sign">$</span>
+                    <code>npm install svelte-tooltip-gca</code>
+                    <button
+                        class="copy-pill-btn"
+                        onclick={() => copyToClipboard(codeInstall, 'hero-install')}
+                        use:tooltip={"Copy install command"}
+                    >
+                        {copiedId === 'hero-install' ? '✓ Copied!' : 'Copy'}
+                    </button>
+                </div>
+            </div>
+
             <div class="hero-actions">
-                <a class="btn primary" href="#quick-start">Get started</a>
+                <a class="btn primary" href="#playground">Try Live Playground</a>
                 <button
                     class="btn ghost"
                     use:tooltip={{
                         content:
-                            "This tooltip portals to document.body so it never clips!",
+                            "This tooltip portals to document.body via Popover API so it never clips!",
                         placement: "bottom",
                     }}
                 >
-                    Try a tooltip
+                    Hover Preview
                 </button>
             </div>
+
+            <!-- Highlights Strip -->
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-val">Svelte 5</span>
+                    <span class="stat-lbl">Runes Native</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-val">Top Layer</span>
+                    <span class="stat-lbl">Popover API</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-val">0 Dependencies</span>
+                    <span class="stat-lbl">Ultra Light</span>
+                </div>
+            </div>
+
             <div class="hero-demo">
                 <button
                     class="chip"
@@ -205,13 +350,114 @@ import type {
                 <button
                     class="chip accent"
                     use:tooltip={{
-                        content: "Brand gradient theme",
+                        content: "Solid blue brand theme",
                         theme: brandTheme,
                         placement: "top",
                     }}
                 >
                     Custom theme
                 </button>
+            </div>
+        </section>
+
+        <!-- Live Playground Section -->
+        <section id="playground" class="section">
+            <h2>Interactive Playground</h2>
+            <p class="section-intro">
+                Adjust parameters in real-time, test the animated feedback, and copy the generated Svelte 5 snippet.
+            </p>
+
+            <div class="playground-card">
+                <div class="pg-grid">
+                    <div class="pg-controls">
+                        <div class="pg-field">
+                            <label for="pg-input-content">Tooltip Content</label>
+                            <input id="pg-input-content" type="text" bind:value={pgContent} class="input-text" />
+                        </div>
+
+                        <div class="pg-row">
+                            <div class="pg-field">
+                                <label for="pg-select-placement">Placement</label>
+                                <select id="pg-select-placement" bind:value={pgPlacement} class="select-input">
+                                    <option value="top">Top</option>
+                                    <option value="bottom">Bottom</option>
+                                    <option value="left">Left</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+
+                            <div class="pg-field">
+                                <label for="pg-select-preset">Theme Preset</label>
+                                <select id="pg-select-preset" bind:value={pgPreset} class="select-input">
+                                    <option value="ocean">Ocean Blue</option>
+                                    <option value="svelte">Svelte Orange</option>
+                                    <option value="darkSlate">Dark Slate</option>
+                                    <option value="emerald">Emerald Green</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="pg-row sliders">
+                            <div class="pg-field">
+                                <div class="label-with-val">
+                                    <span>Show Delay</span>
+                                    <strong>{pgDelay}ms</strong>
+                                </div>
+                                <input type="range" min="0" max="800" step="20" bind:value={pgDelay} class="range-input" />
+                            </div>
+
+                            <div class="pg-field">
+                                <div class="label-with-val">
+                                    <span>Animation Duration</span>
+                                    <strong>{pgDuration}ms</strong>
+                                </div>
+                                <input type="range" min="0" max="600" step="20" bind:value={pgDuration} class="range-input" />
+                            </div>
+
+                            <div class="pg-field">
+                                <div class="label-with-val">
+                                    <span>Offset Gap</span>
+                                    <strong>{pgOffset}px</strong>
+                                </div>
+                                <input type="range" min="0" max="24" step="2" bind:value={pgOffset} class="range-input" />
+                            </div>
+                        </div>
+
+                        <div class="pg-field checkbox-field">
+                            <label class="checkbox-label">
+                                <input type="checkbox" bind:checked={pgArrow} />
+                                Show Pointer Arrow
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="pg-preview-area">
+                        <div class="pg-stage">
+                            <button class="pg-target-btn" use:tooltip={playgroundOptions}>
+                                Hover or Tap Me ⚡
+                            </button>
+                            <p class="pg-stage-note">Live interactive tooltip target</p>
+                        </div>
+
+                        <div class="code-wrapper">
+                            <div class="code-header">
+                                <div class="mac-dots">
+                                    <span class="dot red"></span>
+                                    <span class="dot yellow"></span>
+                                    <span class="dot green"></span>
+                                </div>
+                                <span class="code-lang">svelte</span>
+                                <button
+                                    class="copy-code-btn"
+                                    onclick={() => copyToClipboard(playgroundGeneratedCode, 'playground')}
+                                >
+                                    {copiedId === 'playground' ? '✓ Copied' : 'Copy Code'}
+                                </button>
+                            </div>
+                            <pre class="code"><code>{playgroundGeneratedCode}</code></pre>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -225,8 +471,15 @@ import type {
                 <article class="card step">
                     <span class="step-num">1</span>
                     <h3>Install</h3>
-                    <pre class="code"><code>npm install svelte-tooltip-gca</code
-                        ></pre>
+                    <div class="code-wrapper">
+                        <div class="code-header">
+                            <span class="code-lang">bash</span>
+                            <button class="copy-code-btn" onclick={() => copyToClipboard(codeInstall, 'qs-install')}>
+                                {copiedId === 'qs-install' ? '✓ Copied' : 'Copy'}
+                            </button>
+                        </div>
+                        <pre class="code"><code>{codeInstall}</code></pre>
+                    </div>
                     <p class="hint">
                         Requires <code>svelte</code> ^5.0.0 as a peer dependency.
                     </p>
@@ -235,7 +488,15 @@ import type {
                 <article class="card step">
                     <span class="step-num">2</span>
                     <h3>Import</h3>
-                    <pre class="code"><code>{codeImport}</code></pre>
+                    <div class="code-wrapper">
+                        <div class="code-header">
+                            <span class="code-lang">ts</span>
+                            <button class="copy-code-btn" onclick={() => copyToClipboard(codeImport, 'qs-import')}>
+                                {copiedId === 'qs-import' ? '✓ Copied' : 'Copy'}
+                            </button>
+                        </div>
+                        <pre class="code"><code>{codeImport}</code></pre>
+                    </div>
                     <p class="hint">
                         Works in SvelteKit, Vite, and any Svelte 5 app.
                     </p>
@@ -244,7 +505,15 @@ import type {
                 <article class="card step">
                     <span class="step-num">3</span>
                     <h3>Use</h3>
-                    <pre class="code"><code>{codeUse}</code></pre>
+                    <div class="code-wrapper">
+                        <div class="code-header">
+                            <span class="code-lang">svelte</span>
+                            <button class="copy-code-btn" onclick={() => copyToClipboard(codeUse, 'qs-use')}>
+                                {copiedId === 'qs-use' ? '✓ Copied' : 'Copy'}
+                            </button>
+                        </div>
+                        <pre class="code"><code>{codeUse}</code></pre>
+                    </div>
                     <p class="hint">
                         Pass a string, or an options object for full control.
                     </p>
@@ -253,7 +522,20 @@ import type {
 
             <div class="card full-example">
                 <h3>Minimal example</h3>
-                <pre class="code large"><code>{codeMinimal}</code></pre>
+                <div class="code-wrapper">
+                    <div class="code-header">
+                        <div class="mac-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="code-lang">svelte</span>
+                        <button class="copy-code-btn" onclick={() => copyToClipboard(codeMinimal, 'qs-minimal')}>
+                            {copiedId === 'qs-minimal' ? '✓ Copied' : 'Copy'}
+                        </button>
+                    </div>
+                    <pre class="code large"><code>{codeMinimal}</code></pre>
+                </div>
             </div>
         </section>
 
@@ -326,8 +608,6 @@ import type {
                         By default (<code>overflowBehavior: 'shift'</code>) the
                         tooltip stays on its preferred side, slides to remain in
                         the viewport, and the arrow re-aims at the target.
-                        Resize the window or hover the edge buttons to see it in
-                        action.
                     </p>
                     <div class="demo-row wrap">
                         <button
@@ -488,7 +768,7 @@ import type {
                         <button
                             class="btn secondary"
                             use:tooltip={{
-                                content: "Indigo gradient",
+                                content: "Solid ocean blue",
                                 theme: brandTheme,
                             }}
                         >
@@ -521,9 +801,7 @@ import type {
                     <p>
                         On touch devices, tap toggles the tooltip (tap again or
                         outside to dismiss). Long-press is optional and is
-                        cancelled if the finger moves — so it never fights with
-                        scrolling. On desktop, hover opens and a click
-                        dismisses.
+                        cancelled if the finger moves.
                     </p>
                     <div class="demo-row wrap">
                         <button
@@ -554,10 +832,8 @@ import type {
                     <h3>Overflow-safe</h3>
                     <p>
                         Rendered via the native <code>popover</code> API in the
-                        browser's
-                        <em>top-layer</em> — immune to
-                        <code>overflow: hidden</code>, stacking contexts, and
-                        z-index wars.
+                        browser's <em>top-layer</em> — immune to
+                        <code>overflow: hidden</code> and stacking context issues.
                     </p>
                     <div class="clip-box">
                         <button
@@ -579,16 +855,25 @@ import type {
             <h2>Theming</h2>
             <p class="section-intro">
                 By default tooltips use <code>theme: 'auto'</code>. Detection
-                order: page
-                <code>data-theme</code> / <code>.dark</code> class → CSS
-                <code>color-scheme</code>
-                →
-                <code>prefers-color-scheme</code>.
+                order: page <code>data-theme</code> / <code>.dark</code> class → CSS <code>color-scheme</code> → <code>prefers-color-scheme</code>.
             </p>
 
             <div class="card">
                 <h3>Custom theme object</h3>
-                <pre class="code large"><code>{codeCustomTheme}</code></pre>
+                <div class="code-wrapper">
+                    <div class="code-header">
+                        <div class="mac-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="code-lang">ts</span>
+                        <button class="copy-code-btn" onclick={() => copyToClipboard(codeCustomTheme, 'theme-code')}>
+                            {copiedId === 'theme-code' ? '✓ Copied' : 'Copy'}
+                        </button>
+                    </div>
+                    <pre class="code large"><code>{codeCustomTheme}</code></pre>
+                </div>
             </div>
 
             <div class="card" style="margin-top: 1rem;">
@@ -606,7 +891,7 @@ import type {
                             <tr>
                                 <td><code>background</code></td>
                                 <td>string</td>
-                                <td>Panel background (color or gradient)</td>
+                                <td>Panel background color</td>
                             </tr>
                             <tr>
                                 <td><code>color</code></td>
@@ -704,22 +989,13 @@ import type {
                             </tr>
                             <tr>
                                 <td><code>placement</code></td>
-                                <td
-                                    ><code
-                                        >'top' | 'bottom' | 'left' | 'right'</code
-                                    ></td
-                                >
+                                <td><code>'top' | 'bottom' | 'left' | 'right'</code></td>
                                 <td><code>'top'</code></td>
                                 <td>Preferred side; auto-flips if needed</td>
                             </tr>
                             <tr>
                                 <td><code>theme</code></td>
-                                <td
-                                    ><code
-                                        >'auto' | 'light' | 'dark' |
-                                        TooltipTheme</code
-                                    ></td
-                                >
+                                <td><code>'auto' | 'light' | 'dark' | TooltipTheme</code></td>
                                 <td><code>'auto'</code></td>
                                 <td>Built-in mode or custom theme</td>
                             </tr>
@@ -793,9 +1069,7 @@ import type {
                                 <td><code>touchHideDelay</code></td>
                                 <td>number</td>
                                 <td><code>3000</code></td>
-                                <td
-                                    >Auto-hide on touch (<code>0</code> = off)</td
-                                >
+                                <td>Auto-hide on touch (<code>0</code> = off)</td>
                             </tr>
                             <tr>
                                 <td><code>showOnFocus</code></td>
@@ -808,17 +1082,11 @@ import type {
                                 <td><code>'shift' | 'flip'</code></td>
                                 <td><code>'shift'</code></td>
                                 <td>
-                                    <code>'shift'</code> keeps the preferred
-                                    side, slides the panel, and re-aims the
-                                    arrow. <code>'flip'</code> tries opposite / perpendicular
-                                    sides (legacy).
+                                    <code>'shift'</code> keeps the preferred side, slides the panel, and re-aims the arrow.
                                 </td>
                             </tr>
                             <tr>
-                                <td
-                                    ><code>onShow</code> /
-                                    <code>onHide</code></td
-                                >
+                                <td><code>onShow</code> / <code>onHide</code></td>
                                 <td><code>() =&gt; void</code></td>
                                 <td>—</td>
                                 <td>Lifecycle callbacks</td>
@@ -830,32 +1098,36 @@ import type {
 
             <div class="card" style="margin-top: 1rem;">
                 <h3>Exports</h3>
-                <pre class="code large"><code>{codeExports}</code></pre>
+                <div class="code-wrapper">
+                    <div class="code-header">
+                        <div class="mac-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="code-lang">ts</span>
+                        <button class="copy-code-btn" onclick={() => copyToClipboard(codeExports, 'exports-code')}>
+                            {copiedId === 'exports-code' ? '✓ Copied' : 'Copy'}
+                        </button>
+                    </div>
+                    <pre class="code large"><code>{codeExports}</code></pre>
+                </div>
             </div>
 
             <div class="card" style="margin-top: 1rem;">
                 <h3>Behavior notes</h3>
                 <ul class="notes">
                     <li>
-                        <strong>Escape dismisses.</strong> An open tooltip
-                        closes when you press
-                        <code>Escape</code>, matching native popover
-                        expectations.
+                        <strong>Escape dismisses.</strong> An open tooltip closes when you press <code>Escape</code>.
                     </li>
                     <li>
-                        <strong>Reduced motion.</strong> When the OS reports
-                        <code>prefers-reduced-motion: reduce</code>, the
-                        enter/leave animation is disabled automatically.
+                        <strong>Reduced motion.</strong> Disables animations automatically when <code>prefers-reduced-motion: reduce</code> is set.
                     </li>
                     <li>
-                        <strong>Long-press cancels on movement.</strong> On touch,
-                        a long-press that turns into a scroll or drag is cancelled
-                        instead of opening the tooltip.
+                        <strong>Long-press cancels on movement.</strong> Cancels opening if a touch turns into a scroll or drag.
                     </li>
                     <li>
-                        <strong>Live updates.</strong> Changing the action's params
-                        (content, theme, placement…) while the tooltip is open re-renders
-                        and repositions it in place.
+                        <strong>Live updates.</strong> Parameter reactive updates re-render and reposition tooltips seamlessly.
                     </li>
                 </ul>
             </div>
@@ -868,43 +1140,35 @@ import type {
                     <span class="feature-icon">✨</span>
                     <h3>Svelte 5 action</h3>
                     <p>
-                        <code>use:tooltip</code> on any element — no wrapper components
-                        required.
+                        <code>use:tooltip</code> on any element — no wrapper components required.
                     </p>
                 </div>
                 <div class="feature">
                     <span class="feature-icon">🌓</span>
                     <h3>Auto theme</h3>
                     <p>
-                        Detects dark/light from the page or system and switches
-                        automatically.
+                        Detects dark/light from the page or system and switches automatically.
                     </p>
                 </div>
                 <div class="feature">
                     <span class="feature-icon">📱</span>
                     <h3>Mobile ready</h3>
                     <p>
-                        Tap or long-press on touch devices, with outside-dismiss
-                        and auto-hide.
+                        Tap or long-press on touch devices, with outside-dismiss and auto-hide.
                     </p>
                 </div>
                 <div class="feature">
                     <span class="feature-icon">🎹</span>
                     <h3>Keyboard and a11y</h3>
                     <p>
-                        Opens on focus, dismisses with <code>Escape</code>,
-                        wired up via
-                        <code>aria-describedby</code>, and respects
-                        <code>prefers-reduced-motion</code>.
+                        Opens on focus, dismisses with <code>Escape</code>, wired up via <code>aria-describedby</code>.
                     </p>
                 </div>
                 <div class="feature">
                     <span class="feature-icon">🚀</span>
                     <h3>Top-layer rendering</h3>
                     <p>
-                        Uses the native <code>popover</code> API so tooltips live
-                        in the browser's top-layer, never clipped, never behind a
-                        modal.
+                        Uses the native <code>popover</code> API so tooltips live in the browser's top-layer.
                     </p>
                 </div>
             </div>
@@ -914,18 +1178,89 @@ import type {
     <footer class="footer">
         <p>
             <strong>svelte-tooltip-gca</strong> · MIT License · Built for
-            <a href="https://svelte.dev" target="_blank" rel="noreferrer"
-                >Svelte 5</a
-            >
+            <a href="https://svelte.dev" target="_blank" rel="noreferrer">Svelte 5</a>
         </p>
     </footer>
 </div>
 
 <style>
+    :global(html) {
+        scroll-behavior: smooth;
+    }
+
     .page {
+        position: relative;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        overflow-x: hidden;
+
+        /* Crisp Dark Slate Background */
+        --bg: #0b0f19;
+        --bg-elevated: #111827;
+        --bg-muted: #1f2937;
+        --fg: #f9fafb;
+        --fg-muted: #9ca3af;
+        --border: rgba(255, 255, 255, 0.08);
+        --border-strong: rgba(255, 255, 255, 0.18);
+        --accent: #0284c7;
+        --accent-hover: #0369a1;
+        --accent-soft: rgba(2, 132, 199, 0.15);
+        --accent-text: #38bdf8;
+        --svelte-orange: #ff3e00;
+        --svelte-orange-soft: rgba(255, 62, 0, 0.15);
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+        --shadow-lg: 0 16px 30px -8px rgba(0, 0, 0, 0.4);
+        --code-bg: #030712;
+        --code-fg: #f3f4f6;
+        --radius: 10px;
+        --radius-sm: 6px;
+
+        color-scheme: dark;
+        background-color: var(--bg);
+        color: var(--fg);
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Light Theme Override */
+    :global(html[data-theme="light"]) .page {
+        --bg: #f8fafc;
+        --bg-elevated: #ffffff;
+        --bg-muted: #f1f5f9;
+        --fg: #0f172a;
+        --fg-muted: #64748b;
+        --border: rgba(0, 0, 0, 0.08);
+        --border-strong: rgba(0, 0, 0, 0.16);
+        --accent: #0284c7;
+        --accent-hover: #0369a1;
+        --accent-soft: rgba(2, 132, 199, 0.1);
+        --accent-text: #0284c7;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+        --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
+        --code-bg: #0f172a;
+        --code-fg: #f8fafc;
+        color-scheme: light;
+    }
+
+    @media (prefers-color-scheme: light) {
+        :global(html:not([data-theme="dark"])) .page {
+            --bg: #f8fafc;
+            --bg-elevated: #ffffff;
+            --bg-muted: #f1f5f9;
+            --fg: #0f172a;
+            --fg-muted: #64748b;
+            --border: rgba(0, 0, 0, 0.08);
+            --border-strong: rgba(0, 0, 0, 0.16);
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --accent-soft: rgba(2, 132, 199, 0.1);
+            --accent-text: #0284c7;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
+            --code-bg: #0f172a;
+            --code-fg: #f8fafc;
+            color-scheme: light;
+        }
     }
 
     .header {
@@ -933,7 +1268,7 @@ import type {
         top: 0;
         z-index: 50;
         backdrop-filter: blur(12px);
-        background: color-mix(in srgb, var(--bg) 85%, transparent);
+        background: color-mix(in srgb, var(--bg) 90%, transparent);
         border-bottom: 1px solid var(--border);
     }
 
@@ -957,24 +1292,25 @@ import type {
     .logo {
         display: grid;
         place-items: center;
-        width: 2rem;
-        height: 2rem;
+        width: 2.1rem;
+        height: 2.1rem;
         border-radius: 8px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: var(--accent);
         color: white;
-        font-size: 1rem;
+        font-size: 1.1rem;
+        font-weight: bold;
     }
 
     .badge {
         margin-left: 0.4rem;
         font-size: 0.65rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        padding: 0.15rem 0.45rem;
+        padding: 0.15rem 0.5rem;
         border-radius: 999px;
-        background: var(--accent-soft);
-        color: var(--accent-text);
+        background: var(--svelte-orange-soft);
+        color: var(--svelte-orange);
         vertical-align: middle;
     }
 
@@ -989,6 +1325,7 @@ import type {
         color: var(--fg-muted);
         text-decoration: none;
         font-weight: 500;
+        transition: color 0.15s ease;
     }
 
     .nav a:hover {
@@ -1012,6 +1349,7 @@ import type {
         padding: 0.35rem 0.7rem;
         border-radius: 999px;
         cursor: pointer;
+        transition: all 0.15s ease;
     }
 
     .theme-toggle button.active {
@@ -1021,6 +1359,8 @@ import type {
     }
 
     main {
+        position: relative;
+        z-index: 1;
         flex: 1;
         max-width: 1080px;
         width: 100%;
@@ -1044,6 +1384,7 @@ import type {
         padding: 0.3rem 0.7rem;
         border-radius: 999px;
         margin: 0 0 1rem;
+        border: 1px solid var(--border);
     }
 
     .hero h1 {
@@ -1051,19 +1392,16 @@ import type {
         line-height: 1.1;
         letter-spacing: -0.03em;
         margin: 0 0 1rem;
-        font-weight: 750;
+        font-weight: 800;
     }
 
-    .gradient {
-        background: linear-gradient(135deg, #6366f1, #a855f7 50%, #ec4899);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+    .svelte-text {
+        color: var(--svelte-orange);
     }
 
     .lede {
         max-width: 36rem;
-        margin: 0 auto 1.75rem;
+        margin: 0 auto 1.5rem;
         color: var(--fg-muted);
         font-size: 1.1rem;
     }
@@ -1073,6 +1411,90 @@ import type {
         background: var(--bg-muted);
         padding: 0.1em 0.35em;
         border-radius: 4px;
+    }
+
+    /* Install Banner Pill */
+    .install-pill-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .install-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.4rem 0.8rem 0.4rem 1rem;
+        background: var(--code-bg);
+        border: 1px solid var(--border-strong);
+        border-radius: 999px;
+        box-shadow: var(--shadow-sm);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.85rem;
+    }
+
+    .prompt-sign {
+        color: var(--accent-text);
+        font-weight: bold;
+    }
+
+    .install-pill code {
+        color: var(--code-fg);
+    }
+
+    .copy-pill-btn {
+        background: var(--accent-soft);
+        border: 1px solid var(--border);
+        color: var(--accent-text);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .copy-pill-btn:hover {
+        background: var(--accent);
+        color: #ffffff;
+    }
+
+    /* Hero Stats Bar */
+    .hero-stats {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        margin: 1.5rem auto 2rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        width: fit-content;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-val {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--fg);
+    }
+
+    .stat-lbl {
+        font-size: 0.7rem;
+        color: var(--fg-muted);
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 1.25rem;
+        background: var(--border);
     }
 
     .hero-actions {
@@ -1100,9 +1522,7 @@ import type {
         font-weight: 550;
         cursor: pointer;
         box-shadow: var(--shadow-sm);
-        transition:
-            border-color 0.15s,
-            transform 0.15s;
+        transition: border-color 0.15s, transform 0.15s;
     }
 
     .chip:hover {
@@ -1111,7 +1531,7 @@ import type {
     }
 
     .chip.accent {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        background: var(--accent);
         border-color: transparent;
         color: white;
     }
@@ -1122,16 +1542,13 @@ import type {
         justify-content: center;
         gap: 0.4rem;
         padding: 0.65rem 1.15rem;
-        border-radius: 10px;
+        border-radius: 8px;
         font-size: 0.925rem;
         font-weight: 600;
         cursor: pointer;
         border: 1px solid transparent;
         text-decoration: none;
-        transition:
-            background 0.15s,
-            border-color 0.15s,
-            transform 0.15s;
+        transition: background 0.15s, border-color 0.15s, transform 0.15s;
     }
 
     .btn:hover {
@@ -1189,6 +1606,197 @@ import type {
         border-radius: 4px;
     }
 
+    /* Playground Styling */
+    .playground-card {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .pg-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .pg-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .pg-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .pg-field label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--fg-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .label-with-val {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--fg-muted);
+    }
+
+    .label-with-val strong {
+        color: var(--accent-text);
+    }
+
+    .input-text, .select-input {
+        background: var(--bg-muted);
+        border: 1px solid var(--border);
+        color: var(--fg);
+        padding: 0.55rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.15s ease;
+    }
+
+    .input-text:focus, .select-input:focus {
+        border-color: var(--accent);
+    }
+
+    .pg-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .pg-row.sliders {
+        grid-template-columns: 1fr;
+    }
+
+    .range-input {
+        accent-color: var(--accent);
+        cursor: pointer;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .pg-preview-area {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .pg-stage {
+        min-height: 140px;
+        background: var(--bg-muted);
+        border: 1px dashed var(--border-strong);
+        border-radius: var(--radius-sm);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 1.5rem;
+    }
+
+    .pg-target-btn {
+        padding: 0.85rem 1.8rem;
+        font-size: 1rem;
+        font-weight: 650;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #ffffff;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+        transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .pg-target-btn:hover {
+        background: var(--accent-hover);
+        transform: translateY(-2px);
+    }
+
+    .pg-stage-note {
+        margin: 0;
+        font-size: 0.75rem;
+        color: var(--fg-muted);
+    }
+
+    /* Code Block Header Wrapper */
+    .code-wrapper {
+        position: relative;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--code-bg);
+        margin-top: 0.25rem;
+    }
+
+    .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.45rem 0.85rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .mac-dots {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+    }
+
+    .dot.red { background: #ff5f56; }
+    .dot.yellow { background: #ffbd2e; }
+    .dot.green { background: #27c93f; }
+
+    .code-lang {
+        font-size: 0.7rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: var(--fg-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .copy-code-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #e5e7eb;
+        font-size: 0.725rem;
+        font-weight: 550;
+        padding: 0.25rem 0.55rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .copy-code-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+
     .steps {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1202,6 +1810,11 @@ import type {
         border-radius: var(--radius);
         padding: 1.25rem;
         box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+        border-color: var(--border-strong);
     }
 
     .step-num {
@@ -1259,7 +1872,6 @@ import type {
         padding: 0.85rem 1rem;
         background: var(--code-bg);
         color: var(--code-fg);
-        border-radius: var(--radius-sm);
         font-size: 0.82rem;
         line-height: 1.55;
         overflow-x: auto;
@@ -1299,12 +1911,12 @@ import type {
     }
 
     .linkish {
-        color: var(--accent);
+        color: var(--accent-text);
         font-weight: 550;
         font-size: 0.9rem;
         cursor: help;
         border: none;
-        border-bottom: 1px dashed var(--accent);
+        border-bottom: 1px dashed var(--accent-text);
         background: transparent;
         padding: 0;
         outline: none;
@@ -1312,9 +1924,7 @@ import type {
 
     .linkish:focus-visible {
         border-radius: 4px;
-        box-shadow:
-            0 0 0 2px var(--accent-soft),
-            0 0 0 4px var(--accent);
+        box-shadow: 0 0 0 2px var(--accent-soft), 0 0 0 4px var(--accent);
     }
 
     .clip-box {
@@ -1338,8 +1948,7 @@ import type {
         font-size: 0.875rem;
     }
 
-    th,
-    td {
+    th, td {
         text-align: left;
         padding: 0.65rem 0.75rem;
         border-bottom: 1px solid var(--border);
@@ -1373,6 +1982,12 @@ import type {
         border: 1px solid var(--border);
         border-radius: var(--radius);
         padding: 1.25rem;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .feature:hover {
+        transform: translateY(-2px);
+        border-color: var(--border-strong);
     }
 
     .feature-icon {
@@ -1420,6 +2035,12 @@ import type {
         margin: 0;
     }
 
+    @media (max-width: 860px) {
+        .pg-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     @media (max-width: 720px) {
         .nav {
             display: none;
@@ -1427,6 +2048,17 @@ import type {
 
         .hero {
             padding-top: 2.25rem;
+        }
+
+        .hero-stats {
+            flex-direction: column;
+            border-radius: var(--radius);
+            gap: 0.75rem;
+        }
+
+        .stat-divider {
+            width: 80%;
+            height: 1px;
         }
     }
 </style>
