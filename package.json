@@ -1,6 +1,6 @@
 {
 	"name": "svelte-tooltip-gca",
-	"version": "1.0.4",
+	"version": "1.0.3",
 	"description": "Modern, theme-aware tooltip action for Svelte 5 with auto light/dark themes and mobile-friendly",
 	"license": "MIT",
 	"author": {
