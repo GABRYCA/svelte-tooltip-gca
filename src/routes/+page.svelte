@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { tooltip } from "$lib/index.js";
-    import type { TooltipTheme, TooltipPlacement } from "$lib/index.js";
+    import {tooltip} from "$lib/index.js";
+    import type {TooltipTheme, TooltipPlacement} from "$lib/index.js";
 
     type ThemeMode = "auto" | "light" | "dark";
 
@@ -234,23 +234,23 @@ import type {
             </nav>
             <div class="theme-toggle" role="group" aria-label="Page theme">
                 <button
-                    class:active={pageTheme === "auto"}
-                    onclick={() => setTheme("auto")}
-                    use:tooltip={"Follow system preference"}
+                        class:active={pageTheme === "auto"}
+                        onclick={() => setTheme("auto")}
+                        use:tooltip={"Follow system preference"}
                 >
                     Auto
                 </button>
                 <button
-                    class:active={pageTheme === "light"}
-                    onclick={() => setTheme("light")}
-                    use:tooltip={"Force light theme"}
+                        class:active={pageTheme === "light"}
+                        onclick={() => setTheme("light")}
+                        use:tooltip={"Force light theme"}
                 >
                     Light
                 </button>
                 <button
-                    class:active={pageTheme === "dark"}
-                    onclick={() => setTheme("dark")}
-                    use:tooltip={"Force dark theme"}
+                        class:active={pageTheme === "dark"}
+                        onclick={() => setTheme("dark")}
+                        use:tooltip={"Force dark theme"}
                 >
                     Dark
                 </button>
@@ -262,7 +262,7 @@ import type {
         <section class="hero">
             <p class="eyebrow">npm package · Svelte 5 action</p>
             <h1>
-                Modern tooltips for<br />
+                Modern tooltips for<br/>
                 <span class="svelte-text">Svelte 5</span>
             </h1>
             <p class="lede">
@@ -277,9 +277,9 @@ import type {
                     <span class="prompt-sign">$</span>
                     <code>npm install svelte-tooltip-gca</code>
                     <button
-                        class="copy-pill-btn"
-                        onclick={() => copyToClipboard(codeInstall, 'hero-install')}
-                        use:tooltip={"Copy install command"}
+                            class="copy-pill-btn"
+                            onclick={() => copyToClipboard(codeInstall, 'hero-install')}
+                            use:tooltip={"Copy install command"}
                     >
                         {copiedId === 'hero-install' ? '✓ Copied!' : 'Copy'}
                     </button>
@@ -289,8 +289,8 @@ import type {
             <div class="hero-actions">
                 <a class="btn primary" href="#playground">Try Live Playground</a>
                 <button
-                    class="btn ghost"
-                    use:tooltip={{
+                        class="btn ghost"
+                        use:tooltip={{
                         content:
                             "This tooltip portals to document.body via Popover API so it never clips!",
                         placement: "bottom",
@@ -320,36 +320,40 @@ import type {
 
             <div class="hero-demo">
                 <button
-                    class="chip"
-                    use:tooltip={{
+                        class="chip"
+                        use:tooltip={{
                         content: "Top placement (default)",
                         placement: "top",
-                    }}>Top</button
+                    }}>Top
+                </button
                 >
                 <button
-                    class="chip"
-                    use:tooltip={{
+                        class="chip"
+                        use:tooltip={{
                         content: "Right placement",
                         placement: "right",
-                    }}>Right</button
+                    }}>Right
+                </button
                 >
                 <button
-                    class="chip"
-                    use:tooltip={{
+                        class="chip"
+                        use:tooltip={{
                         content: "Left placement",
                         placement: "left",
-                    }}>Left</button
+                    }}>Left
+                </button
                 >
                 <button
-                    class="chip"
-                    use:tooltip={{
+                        class="chip"
+                        use:tooltip={{
                         content: "Bottom placement",
                         placement: "bottom",
-                    }}>Bottom</button
+                    }}>Bottom
+                </button
                 >
                 <button
-                    class="chip accent"
-                    use:tooltip={{
+                        class="chip accent"
+                        use:tooltip={{
                         content: "Solid blue brand theme",
                         theme: brandTheme,
                         placement: "top",
@@ -372,7 +376,7 @@ import type {
                     <div class="pg-controls">
                         <div class="pg-field">
                             <label for="pg-input-content">Tooltip Content</label>
-                            <input id="pg-input-content" type="text" bind:value={pgContent} class="input-text" />
+                            <input id="pg-input-content" type="text" bind:value={pgContent} class="input-text"/>
                         </div>
 
                         <div class="pg-row">
@@ -403,7 +407,8 @@ import type {
                                     <span>Show Delay</span>
                                     <strong>{pgDelay}ms</strong>
                                 </div>
-                                <input type="range" min="0" max="800" step="20" bind:value={pgDelay} class="range-input" />
+                                <input type="range" min="0" max="800" step="20" bind:value={pgDelay}
+                                       class="range-input"/>
                             </div>
 
                             <div class="pg-field">
@@ -411,7 +416,8 @@ import type {
                                     <span>Animation Duration</span>
                                     <strong>{pgDuration}ms</strong>
                                 </div>
-                                <input type="range" min="0" max="600" step="20" bind:value={pgDuration} class="range-input" />
+                                <input type="range" min="0" max="600" step="20" bind:value={pgDuration}
+                                       class="range-input"/>
                             </div>
 
                             <div class="pg-field">
@@ -419,13 +425,14 @@ import type {
                                     <span>Offset Gap</span>
                                     <strong>{pgOffset}px</strong>
                                 </div>
-                                <input type="range" min="0" max="24" step="2" bind:value={pgOffset} class="range-input" />
+                                <input type="range" min="0" max="24" step="2" bind:value={pgOffset}
+                                       class="range-input"/>
                             </div>
                         </div>
 
                         <div class="pg-field checkbox-field">
                             <label class="checkbox-label">
-                                <input type="checkbox" bind:checked={pgArrow} />
+                                <input type="checkbox" bind:checked={pgArrow}/>
                                 Show Pointer Arrow
                             </label>
                         </div>
@@ -448,8 +455,8 @@ import type {
                                 </div>
                                 <span class="code-lang">svelte</span>
                                 <button
-                                    class="copy-code-btn"
-                                    onclick={() => copyToClipboard(playgroundGeneratedCode, 'playground')}
+                                        class="copy-code-btn"
+                                        onclick={() => copyToClipboard(playgroundGeneratedCode, 'playground')}
                                 >
                                     {copiedId === 'playground' ? '✓ Copied' : 'Copy Code'}
                                 </button>
@@ -552,15 +559,15 @@ import type {
                     <p>String shorthand for the most common case.</p>
                     <div class="demo-row">
                         <button
-                            class="btn secondary"
-                            use:tooltip={"Hello from svelte-tooltip-gca!"}
+                                class="btn secondary"
+                                use:tooltip={"Hello from svelte-tooltip-gca!"}
                         >
                             Hover me
                         </button>
                         <button
-                            type="button"
-                            class="linkish"
-                            use:tooltip={"Works on any element — spans, icons, inputs…"}
+                                type="button"
+                                class="linkish"
+                                use:tooltip={"Works on any element — spans, icons, inputs…"}
                         >
                             or this text
                         </button>
@@ -574,30 +581,32 @@ import type {
                     </p>
                     <div class="demo-row wrap">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{ content: "Top", placement: "top" }}
-                            >Top</button
+                                class="btn secondary"
+                                use:tooltip={{ content: "Top", placement: "top" }}
+                        >Top
+                        </button
                         >
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Bottom",
                                 placement: "bottom",
                             }}
-                            >Bottom
+                        >Bottom
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{ content: "Left", placement: "left" }}
-                            >Left</button
+                                class="btn secondary"
+                                use:tooltip={{ content: "Left", placement: "left" }}
+                        >Left
+                        </button
                         >
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Right",
                                 placement: "right",
                             }}
-                            >Right
+                        >Right
                         </button>
                     </div>
                 </article>
@@ -611,8 +620,8 @@ import type {
                     </p>
                     <div class="demo-row wrap">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content:
                                     "I stay on top and shift sideways — the arrow still points at my button!",
                                 placement: "top",
@@ -621,8 +630,8 @@ import type {
                             Shift (default)
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content:
                                     "I flip to the opposite side when space runs out.",
                                 placement: "top",
@@ -634,8 +643,8 @@ import type {
                     </div>
                     <div class="edge-demo">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content:
                                     "Near the left edge — shifted right, arrow aims left.",
                                 placement: "bottom",
@@ -645,8 +654,8 @@ import type {
                         </button>
                         <span class="edge-spacer"></span>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content:
                                     "Near the right edge — shifted left, arrow aims right.",
                                 placement: "bottom",
@@ -662,8 +671,8 @@ import type {
                     <p>Tune show delay and animation duration.</p>
                     <div class="demo-row wrap">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Appears after 500ms",
                                 delay: 500,
                             }}
@@ -671,8 +680,8 @@ import type {
                             Slow show
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "No animation",
                                 animation: false,
                                 delay: 0,
@@ -681,8 +690,8 @@ import type {
                             Instant
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Longer fade (400ms)",
                                 animationDuration: 400,
                             }}
@@ -697,8 +706,8 @@ import type {
                     <p>Enable HTML for trusted markup (icons, emphasis).</p>
                     <div class="demo-row">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content:
                                     "<strong>Pro tip:</strong> use <code>html: true</code> carefully.",
                                 html: true,
@@ -708,8 +717,8 @@ import type {
                             HTML content
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content:
                                     "Longer copy wraps nicely within maxWidth so multi-line tips stay readable on small screens.",
                                 maxWidth: 220,
@@ -729,8 +738,8 @@ import type {
                     </p>
                     <div class="demo-row wrap">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Always light panel",
                                 theme: "light",
                             }}
@@ -738,8 +747,8 @@ import type {
                             Force light
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Always dark panel",
                                 theme: "dark",
                             }}
@@ -747,8 +756,8 @@ import type {
                             Force dark
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Follows page / system",
                                 theme: "auto",
                             }}
@@ -766,8 +775,8 @@ import type {
                     </p>
                     <div class="demo-row wrap">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Solid ocean blue",
                                 theme: brandTheme,
                             }}
@@ -775,8 +784,8 @@ import type {
                             Brand
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "All good!",
                                 theme: successTheme,
                                 arrow: false,
@@ -785,8 +794,8 @@ import type {
                             Success pill
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Check this twice",
                                 theme: warningTheme,
                             }}
@@ -805,8 +814,8 @@ import type {
                     </p>
                     <div class="demo-row wrap">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content:
                                     "Tap to show — tap again or outside to hide",
                                 touchBehavior: "tap",
@@ -816,8 +825,8 @@ import type {
                             Tap mode
                         </button>
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content: "Press and hold on touch devices",
                                 touchBehavior: "longpress",
                                 longPressDuration: 400,
@@ -837,8 +846,8 @@ import type {
                     </p>
                     <div class="clip-box">
                         <button
-                            class="btn secondary"
-                            use:tooltip={{
+                                class="btn secondary"
+                                use:tooltip={{
                                 content:
                                     "I escape overflow: hidden containers via the top-layer",
                                 placement: "top",
@@ -881,73 +890,73 @@ import type {
                 <div class="table-wrap">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Property</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                            </tr>
+                        <tr>
+                            <th>Property</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><code>background</code></td>
-                                <td>string</td>
-                                <td>Panel background color</td>
-                            </tr>
-                            <tr>
-                                <td><code>color</code></td>
-                                <td>string</td>
-                                <td>Text color</td>
-                            </tr>
-                            <tr>
-                                <td><code>border</code></td>
-                                <td>string</td>
-                                <td>Border color</td>
-                            </tr>
-                            <tr>
-                                <td><code>shadow</code></td>
-                                <td>string</td>
-                                <td>CSS box-shadow</td>
-                            </tr>
-                            <tr>
-                                <td><code>borderRadius</code></td>
-                                <td>string</td>
-                                <td>Corner radius</td>
-                            </tr>
-                            <tr>
-                                <td><code>fontSize</code></td>
-                                <td>string</td>
-                                <td>Font size</td>
-                            </tr>
-                            <tr>
-                                <td><code>fontFamily</code></td>
-                                <td>string</td>
-                                <td>Font stack</td>
-                            </tr>
-                            <tr>
-                                <td><code>fontWeight</code></td>
-                                <td>string</td>
-                                <td>Font weight</td>
-                            </tr>
-                            <tr>
-                                <td><code>padding</code></td>
-                                <td>string</td>
-                                <td>Inner padding</td>
-                            </tr>
-                            <tr>
-                                <td><code>maxWidth</code></td>
-                                <td>string</td>
-                                <td>Max width</td>
-                            </tr>
-                            <tr>
-                                <td><code>arrowSize</code></td>
-                                <td>string | number</td>
-                                <td>Arrow size</td>
-                            </tr>
-                            <tr>
-                                <td><code>zIndex</code></td>
-                                <td>number | string</td>
-                                <td>Stacking order (default 9999)</td>
-                            </tr>
+                        <tr>
+                            <td><code>background</code></td>
+                            <td>string</td>
+                            <td>Panel background color</td>
+                        </tr>
+                        <tr>
+                            <td><code>color</code></td>
+                            <td>string</td>
+                            <td>Text color</td>
+                        </tr>
+                        <tr>
+                            <td><code>border</code></td>
+                            <td>string</td>
+                            <td>Border color</td>
+                        </tr>
+                        <tr>
+                            <td><code>shadow</code></td>
+                            <td>string</td>
+                            <td>CSS box-shadow</td>
+                        </tr>
+                        <tr>
+                            <td><code>borderRadius</code></td>
+                            <td>string</td>
+                            <td>Corner radius</td>
+                        </tr>
+                        <tr>
+                            <td><code>fontSize</code></td>
+                            <td>string</td>
+                            <td>Font size</td>
+                        </tr>
+                        <tr>
+                            <td><code>fontFamily</code></td>
+                            <td>string</td>
+                            <td>Font stack</td>
+                        </tr>
+                        <tr>
+                            <td><code>fontWeight</code></td>
+                            <td>string</td>
+                            <td>Font weight</td>
+                        </tr>
+                        <tr>
+                            <td><code>padding</code></td>
+                            <td>string</td>
+                            <td>Inner padding</td>
+                        </tr>
+                        <tr>
+                            <td><code>maxWidth</code></td>
+                            <td>string</td>
+                            <td>Max width</td>
+                        </tr>
+                        <tr>
+                            <td><code>arrowSize</code></td>
+                            <td>string | number</td>
+                            <td>Arrow size</td>
+                        </tr>
+                        <tr>
+                            <td><code>zIndex</code></td>
+                            <td>number | string</td>
+                            <td>Stacking order (default 9999)</td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>
@@ -967,130 +976,130 @@ import type {
                 <div class="table-wrap">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Option</th>
-                                <th>Type</th>
-                                <th>Default</th>
-                                <th>Description</th>
-                            </tr>
+                        <tr>
+                            <th>Option</th>
+                            <th>Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><code>content</code></td>
-                                <td>string</td>
-                                <td>—</td>
-                                <td>Tooltip text (required for object form)</td>
-                            </tr>
-                            <tr>
-                                <td><code>html</code></td>
-                                <td>boolean</td>
-                                <td><code>false</code></td>
-                                <td>Render content as HTML (trusted only)</td>
-                            </tr>
-                            <tr>
-                                <td><code>placement</code></td>
-                                <td><code>'top' | 'bottom' | 'left' | 'right'</code></td>
-                                <td><code>'top'</code></td>
-                                <td>Preferred side; auto-flips if needed</td>
-                            </tr>
-                            <tr>
-                                <td><code>theme</code></td>
-                                <td><code>'auto' | 'light' | 'dark' | TooltipTheme</code></td>
-                                <td><code>'auto'</code></td>
-                                <td>Built-in mode or custom theme</td>
-                            </tr>
-                            <tr>
-                                <td><code>offset</code></td>
-                                <td>number</td>
-                                <td><code>8</code></td>
-                                <td>Gap between target and tooltip (px)</td>
-                            </tr>
-                            <tr>
-                                <td><code>delay</code></td>
-                                <td>number</td>
-                                <td><code>120</code></td>
-                                <td>Show delay (ms)</td>
-                            </tr>
-                            <tr>
-                                <td><code>hideDelay</code></td>
-                                <td>number</td>
-                                <td><code>80</code></td>
-                                <td>Hide delay (ms)</td>
-                            </tr>
-                            <tr>
-                                <td><code>arrow</code></td>
-                                <td>boolean</td>
-                                <td><code>true</code></td>
-                                <td>Show pointing arrow</td>
-                            </tr>
-                            <tr>
-                                <td><code>animation</code></td>
-                                <td>boolean</td>
-                                <td><code>true</code></td>
-                                <td>Enable fade/scale animation</td>
-                            </tr>
-                            <tr>
-                                <td><code>animationDuration</code></td>
-                                <td>number</td>
-                                <td><code>160</code></td>
-                                <td>Animation duration (ms)</td>
-                            </tr>
-                            <tr>
-                                <td><code>disabled</code></td>
-                                <td>boolean</td>
-                                <td><code>false</code></td>
-                                <td>Disable the tooltip</td>
-                            </tr>
-                            <tr>
-                                <td><code>class</code></td>
-                                <td>string</td>
-                                <td><code>''</code></td>
-                                <td>Extra CSS class on the tooltip</td>
-                            </tr>
-                            <tr>
-                                <td><code>maxWidth</code></td>
-                                <td>number | string</td>
-                                <td>theme default</td>
-                                <td>Override max width</td>
-                            </tr>
-                            <tr>
-                                <td><code>touchBehavior</code></td>
-                                <td><code>'tap' | 'longpress'</code></td>
-                                <td><code>'tap'</code></td>
-                                <td>How touch devices open the tip</td>
-                            </tr>
-                            <tr>
-                                <td><code>longPressDuration</code></td>
-                                <td>number</td>
-                                <td><code>400</code></td>
-                                <td>Long-press threshold (ms)</td>
-                            </tr>
-                            <tr>
-                                <td><code>touchHideDelay</code></td>
-                                <td>number</td>
-                                <td><code>3000</code></td>
-                                <td>Auto-hide on touch (<code>0</code> = off)</td>
-                            </tr>
-                            <tr>
-                                <td><code>showOnFocus</code></td>
-                                <td>boolean</td>
-                                <td><code>true</code></td>
-                                <td>Show on keyboard focus</td>
-                            </tr>
-                            <tr>
-                                <td><code>overflowBehavior</code></td>
-                                <td><code>'shift' | 'flip'</code></td>
-                                <td><code>'shift'</code></td>
-                                <td>
-                                    <code>'shift'</code> keeps the preferred side, slides the panel, and re-aims the arrow.
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><code>onShow</code> / <code>onHide</code></td>
-                                <td><code>() =&gt; void</code></td>
-                                <td>—</td>
-                                <td>Lifecycle callbacks</td>
-                            </tr>
+                        <tr>
+                            <td><code>content</code></td>
+                            <td>string</td>
+                            <td>—</td>
+                            <td>Tooltip text (required for object form)</td>
+                        </tr>
+                        <tr>
+                            <td><code>html</code></td>
+                            <td>boolean</td>
+                            <td><code>false</code></td>
+                            <td>Render content as HTML (trusted only)</td>
+                        </tr>
+                        <tr>
+                            <td><code>placement</code></td>
+                            <td><code>'top' | 'bottom' | 'left' | 'right'</code></td>
+                            <td><code>'top'</code></td>
+                            <td>Preferred side; auto-flips if needed</td>
+                        </tr>
+                        <tr>
+                            <td><code>theme</code></td>
+                            <td><code>'auto' | 'light' | 'dark' | TooltipTheme</code></td>
+                            <td><code>'auto'</code></td>
+                            <td>Built-in mode or custom theme</td>
+                        </tr>
+                        <tr>
+                            <td><code>offset</code></td>
+                            <td>number</td>
+                            <td><code>8</code></td>
+                            <td>Gap between target and tooltip (px)</td>
+                        </tr>
+                        <tr>
+                            <td><code>delay</code></td>
+                            <td>number</td>
+                            <td><code>120</code></td>
+                            <td>Show delay (ms)</td>
+                        </tr>
+                        <tr>
+                            <td><code>hideDelay</code></td>
+                            <td>number</td>
+                            <td><code>80</code></td>
+                            <td>Hide delay (ms)</td>
+                        </tr>
+                        <tr>
+                            <td><code>arrow</code></td>
+                            <td>boolean</td>
+                            <td><code>true</code></td>
+                            <td>Show pointing arrow</td>
+                        </tr>
+                        <tr>
+                            <td><code>animation</code></td>
+                            <td>boolean</td>
+                            <td><code>true</code></td>
+                            <td>Enable fade/scale animation</td>
+                        </tr>
+                        <tr>
+                            <td><code>animationDuration</code></td>
+                            <td>number</td>
+                            <td><code>160</code></td>
+                            <td>Animation duration (ms)</td>
+                        </tr>
+                        <tr>
+                            <td><code>disabled</code></td>
+                            <td>boolean</td>
+                            <td><code>false</code></td>
+                            <td>Disable the tooltip</td>
+                        </tr>
+                        <tr>
+                            <td><code>class</code></td>
+                            <td>string</td>
+                            <td><code>''</code></td>
+                            <td>Extra CSS class on the tooltip</td>
+                        </tr>
+                        <tr>
+                            <td><code>maxWidth</code></td>
+                            <td>number | string</td>
+                            <td>theme default</td>
+                            <td>Override max width</td>
+                        </tr>
+                        <tr>
+                            <td><code>touchBehavior</code></td>
+                            <td><code>'tap' | 'longpress'</code></td>
+                            <td><code>'tap'</code></td>
+                            <td>How touch devices open the tip</td>
+                        </tr>
+                        <tr>
+                            <td><code>longPressDuration</code></td>
+                            <td>number</td>
+                            <td><code>400</code></td>
+                            <td>Long-press threshold (ms)</td>
+                        </tr>
+                        <tr>
+                            <td><code>touchHideDelay</code></td>
+                            <td>number</td>
+                            <td><code>3000</code></td>
+                            <td>Auto-hide on touch (<code>0</code> = off)</td>
+                        </tr>
+                        <tr>
+                            <td><code>showOnFocus</code></td>
+                            <td>boolean</td>
+                            <td><code>true</code></td>
+                            <td>Show on keyboard focus</td>
+                        </tr>
+                        <tr>
+                            <td><code>overflowBehavior</code></td>
+                            <td><code>'shift' | 'flip'</code></td>
+                            <td><code>'shift'</code></td>
+                            <td>
+                                <code>'shift'</code> keeps the preferred side, slides the panel, and re-aims the arrow.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>onShow</code> / <code>onHide</code></td>
+                            <td><code>() =&gt; void</code></td>
+                            <td>—</td>
+                            <td>Lifecycle callbacks</td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>
@@ -1121,13 +1130,16 @@ import type {
                         <strong>Escape dismisses.</strong> An open tooltip closes when you press <code>Escape</code>.
                     </li>
                     <li>
-                        <strong>Reduced motion.</strong> Disables animations automatically when <code>prefers-reduced-motion: reduce</code> is set.
+                        <strong>Reduced motion.</strong> Disables animations automatically when <code>prefers-reduced-motion:
+                        reduce</code> is set.
                     </li>
                     <li>
-                        <strong>Long-press cancels on movement.</strong> Cancels opening if a touch turns into a scroll or drag.
+                        <strong>Long-press cancels on movement.</strong> Cancels opening if a touch turns into a scroll
+                        or drag.
                     </li>
                     <li>
-                        <strong>Live updates.</strong> Parameter reactive updates re-render and reposition tooltips seamlessly.
+                        <strong>Live updates.</strong> Parameter reactive updates re-render and reposition tooltips
+                        seamlessly.
                     </li>
                 </ul>
             </div>
@@ -1431,15 +1443,25 @@ import type {
         box-shadow: var(--shadow-sm);
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 0.85rem;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .install-pill code {
+        color: var(--code-fg);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+
+    .copy-pill-btn {
+        flex-shrink: 0;
     }
 
     .prompt-sign {
         color: var(--accent-text);
         font-weight: bold;
-    }
-
-    .install-pill code {
-        color: var(--code-fg);
     }
 
     .copy-pill-btn {
@@ -1621,6 +1643,11 @@ import type {
         gap: 1.5rem;
     }
 
+    .pg-controls,
+    .pg-preview-area {
+        min-width: 0;
+    }
+
     .pg-controls {
         display: flex;
         flex-direction: column;
@@ -1655,6 +1682,8 @@ import type {
     }
 
     .input-text, .select-input {
+        width: 100%;
+        min-width: 0;
         background: var(--bg-muted);
         border: 1px solid var(--border);
         color: var(--fg);
@@ -1680,6 +1709,8 @@ import type {
     }
 
     .range-input {
+        width: 100%;
+        min-width: 0;
         accent-color: var(--accent);
         cursor: pointer;
     }
@@ -1768,9 +1799,17 @@ import type {
         border-radius: 50%;
     }
 
-    .dot.red { background: #ff5f56; }
-    .dot.yellow { background: #ffbd2e; }
-    .dot.green { background: #27c93f; }
+    .dot.red {
+        background: #ff5f56;
+    }
+
+    .dot.yellow {
+        background: #ffbd2e;
+    }
+
+    .dot.green {
+        background: #27c93f;
+    }
 
     .code-lang {
         font-size: 0.7rem;
@@ -2054,11 +2093,199 @@ import type {
             flex-direction: column;
             border-radius: var(--radius);
             gap: 0.75rem;
+            padding: 0.75rem 1rem;
         }
 
         .stat-divider {
             width: 80%;
             height: 1px;
+        }
+
+        .playground-card {
+            padding: 1rem;
+        }
+
+        .pg-grid {
+            gap: 1rem;
+        }
+
+        .header-inner {
+            padding: 0.65rem 0.85rem;
+            gap: 0.75rem;
+        }
+    }
+
+    /* Small phones — keep everything inside the viewport. */
+    @media (max-width: 480px) {
+        main {
+            padding: 0 0.75rem 3rem;
+        }
+
+        .header-inner {
+            padding: 0.55rem 0.75rem;
+            gap: 0.5rem;
+        }
+
+        .brand {
+            font-size: 0.85rem;
+        }
+
+        .logo {
+            width: 1.85rem;
+            height: 1.85rem;
+            font-size: 1rem;
+        }
+
+        .theme-toggle button {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.55rem;
+        }
+
+        .hero {
+            padding: 2rem 0 1.75rem;
+        }
+
+        .hero h1 {
+            font-size: 1.9rem;
+        }
+
+        .lede {
+            font-size: 1rem;
+        }
+
+        .install-pill {
+            font-size: 0.78rem;
+            padding: 0.35rem 0.55rem 0.35rem 0.8rem;
+            gap: 0.45rem;
+        }
+
+        .copy-pill-btn {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.55rem;
+        }
+
+        .hero-stats {
+            gap: 0.6rem;
+            padding: 0.7rem 0.85rem;
+        }
+
+        .stat-val {
+            font-size: 0.8rem;
+        }
+
+        .stat-lbl {
+            font-size: 0.65rem;
+        }
+
+        .hero-actions {
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.55rem 0.95rem;
+            font-size: 0.875rem;
+        }
+
+        .chip {
+            padding: 0.45rem 0.85rem;
+            font-size: 0.8rem;
+        }
+
+        .section {
+            padding: 1.75rem 0 0.5rem;
+        }
+
+        .section h2 {
+            font-size: 1.4rem;
+        }
+
+        .section-intro {
+            font-size: 0.9rem;
+        }
+
+        /* Playground: stack the two selects so each gets full width. */
+        .playground-card {
+            padding: 0.85rem;
+        }
+
+        .pg-row {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .pg-row.sliders {
+            gap: 1rem;
+        }
+
+        .pg-stage {
+            min-height: 110px;
+            padding: 1rem;
+        }
+
+        .pg-target-btn {
+            padding: 0.7rem 1.4rem;
+            font-size: 0.95rem;
+        }
+
+        /* Code header: tighter spacing so mac-dots + lang + Copy fit. */
+        .code-header {
+            padding: 0.4rem 0.6rem;
+        }
+
+        .copy-code-btn {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.45rem;
+        }
+
+        .code {
+            font-size: 0.78rem;
+            padding: 0.7rem 0.85rem;
+        }
+
+        .card {
+            padding: 1rem;
+        }
+
+        .grid {
+            grid-template-columns: 1fr;
+        }
+
+        .steps {
+            grid-template-columns: 1fr;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .demo-row {
+            flex-wrap: wrap;
+        }
+
+        .footer {
+            padding: 1.25rem 1rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Extra-tiny screens (≤360px) — last-resort tightening. */
+    @media (max-width: 360px) {
+        .hero h1 {
+            font-size: 1.65rem;
+        }
+
+        .install-pill {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.45rem 0.3rem 0.65rem;
+        }
+
+        .playground-card {
+            padding: 0.65rem;
+        }
+
+        .pg-field label,
+        .label-with-val {
+            font-size: 0.72rem;
         }
     }
 </style>
