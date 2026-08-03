@@ -66,7 +66,6 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	let isTouch = false;
 	let touchOpened = false;
 	let ignoreMouseUntil = 0;
-	let ignoreDismissUntil = 0;
 	let tapHandledByPointer = false;
 	let resizeObserver: ResizeObserver | null = null;
 	let mediaQuery: MediaQueryList | null = null;
@@ -382,7 +381,6 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	function toggleTap() {
 		if (options.disabled || !options.content) return;
 		if (visible && touchOpened) { hide(true); return; }
-		ignoreDismissUntil = Date.now() + 350;
 		show(true);
 		touchOpened = true;
 		scheduleTouchHide();
@@ -434,7 +432,6 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 				longPressActive = false;
 				show(true);
 				touchOpened = true;
-				ignoreDismissUntil = Date.now() + 350;
 				scheduleTouchHide();
 			}, options.longPressDuration);
 		}
@@ -481,7 +478,6 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 
 	function onDocumentPointerDown(e: Event) {
 		if (!visible || !touchOpened) return;
-		if (Date.now() < ignoreDismissUntil) return;
 		const target = e.target as Node | null;
 		if (target && (node.contains(target) || tooltipEl?.contains(target))) return;
 		hide(true);
