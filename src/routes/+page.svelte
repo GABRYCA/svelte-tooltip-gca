@@ -1844,9 +1844,6 @@ import type {
     }
 
     .steps > * {
-        /* Grid items default to min-width: auto, which makes the card refuse to
-           shrink below the code block's intrinsic width and push it off-screen
-           on mobile. Let it shrink so `.code`'s horizontal scroll kicks in. */
         min-width: 0;
     }
 
