@@ -1,0 +1,21 @@
+# svelte-tooltip-gca
+
+> Modern, theme-aware tooltip action (use:tooltip) for Svelte 5: automatic light/dark themes, mobile touch support, top-layer Popover API rendering and zero dependencies. Docs, quick start, API reference and live playground.
+
+svelte-tooltip-gca is an npm package that adds tooltips to any Svelte 5 element through a single Svelte action. It requires Svelte `^5.0.0` as a peer dependency and works in SvelteKit, Vite and any Svelte 5 app.
+
+## Optional
+
+- Package name: `svelte-tooltip-gca`
+- Latest version: `1.0.3`
+- License: MIT
+- Author: AnonymousGCA (https://anonymousgca.eu)
+- Dependencies: 0 runtime dependencies; peer dependency `svelte ^5.0.0`
+
+## Important
+
+- [Docs & Demo site](https://gabryca.github.io/svelte-tooltip-gca/): official documentation with a live playground, API reference, theming guide and FAQ
+- [Full docs for LLMs (llms-full.txt)](https://gabryca.github.io/svelte-tooltip-gca/llms-full.txt): the complete documentation as a single Markdown file
+- [npm package](https://www.npmjs.com/package/svelte-tooltip-gca): install with `npm install svelte-tooltip-gca`
+- [GitHub repository](https://github.com/GABRYCA/svelte-tooltip-gca): source code, issues and changelog
+- [License (MIT)](https://github.com/GABRYCA/svelte-tooltip-gca/blob/master/LICENSE)

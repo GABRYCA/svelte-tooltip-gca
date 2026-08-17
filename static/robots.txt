@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gabryca.github.io/svelte-tooltip-gca/sitemap.xml

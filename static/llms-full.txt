@@ -1,0 +1,184 @@
+# svelte-tooltip-gca — complete documentation
+
+> Modern, theme-aware tooltip action (use:tooltip) for Svelte 5: automatic light/dark themes, mobile touch support, top-layer Popover API rendering and zero dependencies. Docs, quick start, API reference and live playground.. MIT licensed, no runtime dependencies, peer dependency `svelte ^5.0.0`.
+
+This file contains the full documentation for the `svelte-tooltip-gca` package (v1.0.3) so LLMs and AI agents can answer questions about installation, usage, options, theming, mobile behavior, accessibility and the FAQ without fetching multiple pages.
+
+## What it is
+
+`svelte-tooltip-gca` is a tooltip library for Svelte 5 that ships as a single Svelte action. You attach it to any element with `use:tooltip`, passing either a string or an options object.
+
+Key features:
+
+- Single Svelte 5 action (`use:tooltip`) — no wrapper components required
+- Auto light and dark theme detection
+- Custom themes via a plain object
+- Desktop and mobile friendly (hover, focus, tap, long-press)
+- Keyboard friendly: opens on focus, dismisses with `Escape`
+- Top-layer rendering via the native Popover API — never clipped, immune to z-index wars
+- Smooth enter and leave animation (respects `prefers-reduced-motion`)
+- Smart positioning: stays on the preferred side, shifts to fit, arrow re-aims at the target
+
+## Install
+
+```sh
+npm install svelte-tooltip-gca
+```
+
+Peer dependency: `svelte` ^5.0.0. The package has zero runtime dependencies.
+
+## Quick start
+
+```svelte
+<script>
+  import { tooltip } from 'svelte-tooltip-gca';
+</script>
+
+<button use:tooltip={'Saved!'}>Save</button>
+
+<button
+  use:tooltip={{
+    content: 'Delete permanently',
+    placement: 'right',
+    delay: 200
+  }}
+>
+  Delete
+</button>
+```
+
+## Options
+
+`use:tooltip` accepts a **string** or an **options object**:
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `content` | `string` | — | Tooltip text (required for object form) |
+| `html` | `boolean` | `false` | Render content as HTML (trusted only) |
+| `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | Preferred side |
+| `overflowBehavior` | `'shift' \| 'flip'` | `'shift'` | Viewport-overflow strategy |
+| `theme` | `'auto' \| 'light' \| 'dark' \| TooltipTheme` | `'auto'` | Theme mode or custom object |
+| `offset` | `number` | `8` | Gap from target (px) |
+| `delay` | `number` | `120` | Show delay (ms) |
+| `hideDelay` | `number` | `80` | Hide delay (ms) |
+| `arrow` | `boolean` | `true` | Show arrow |
+| `animation` | `boolean` | `true` | Enable animation |
+| `animationDuration` | `number` | `160` | Animation ms |
+| `disabled` | `boolean` | `false` | Disable tooltip |
+| `class` | `string` | `''` | Extra CSS class |
+| `maxWidth` | `number \| string` | theme | Max width override |
+| `touchBehavior` | `'tap' \| 'longpress'` | `'tap'` | Touch open behavior |
+| `longPressDuration` | `number` | `400` | Long-press ms |
+| `touchHideDelay` | `number` | `3000` | Auto-hide on touch (`0` = off) |
+| `showOnFocus` | `boolean` | `true` | Show on keyboard focus |
+| `onShow` / `onHide` | `() => void` | — | Lifecycle callbacks |
+
+### Overflow behavior
+
+By default (`'shift'`) the tooltip **stays on its preferred side**, slides along the cross-axis to remain fully visible, and the **arrow re-aims** at the target element even when the panel is off-centre. It only flips to the opposite side when there is no room at all on the primary axis.
+
+Pass `overflowBehavior: 'flip'` to restore the legacy strategy (try opposite, then perpendicular sides).
+
+## Theming
+
+### Auto (default)
+
+Detection order:
+
+1. `data-theme` / `data-color-scheme` / `data-bs-theme` on `<html>` or `<body>`
+2. `.dark` / `.theme-dark` class
+3. CSS `color-scheme`
+4. `prefers-color-scheme` media query
+
+### Force light or dark
+
+Pass `theme: 'light'` or `theme: 'dark'` in the options object.
+
+### Custom theme
+
+Pass a partial `TooltipTheme` object — only override what you need:
+
+```ts
+import type { TooltipTheme } from 'svelte-tooltip-gca';
+
+const brand: TooltipTheme = {
+  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+  color: '#fff',
+  borderRadius: '10px',
+  shadow: '0 12px 28px -8px rgba(99, 102, 241, 0.55)',
+  padding: '8px 12px'
+};
+```
+
+Theme fields: `background`, `color`, `border`, `shadow`, `borderRadius`, `fontSize`, `fontFamily`, `fontWeight`, `padding`, `maxWidth`, `arrowSize`, `zIndex`.
+
+## Mobile
+
+- `touchBehavior: 'tap'` (default): first tap shows, second or outside tap hides
+- `touchBehavior: 'longpress'`: press and hold to show (cancelled if the finger moves — e.g. to scroll)
+- Auto-hides after `touchHideDelay` (default 3s)
+
+## Accessibility
+
+- Tooltips render with `role="tooltip"` and are wired up via `aria-describedby`
+- Focusable elements open the tooltip on keyboard focus
+- Pressing `Escape` dismisses an open tooltip
+- Animations are disabled when the user prefers reduced motion (`prefers-reduced-motion: reduce`)
+
+## Exports
+
+```ts
+import {
+  tooltip,          // Svelte action
+  lightTheme,       // default light theme object
+  darkTheme,        // default dark theme object
+  detectDarkMode,   // () => boolean
+  resolveTheme      // resolve mode/partial → full theme
+} from 'svelte-tooltip-gca';
+
+import type {
+  TooltipParams,
+  TooltipOptions,
+  TooltipTheme,
+  TooltipThemeMode,
+  TooltipPlacement
+} from 'svelte-tooltip-gca';
+```
+
+## FAQ
+
+### What is svelte-tooltip-gca?
+
+svelte-tooltip-gca is a modern, theme-aware tooltip library for Svelte 5. It ships as a single Svelte action (use:tooltip) with zero dependencies, automatic light and dark themes, mobile touch support, and top-layer rendering through the native Popover API.
+
+### How do I install svelte-tooltip-gca?
+
+Run npm install svelte-tooltip-gca. The package requires Svelte 5 (^5.0.0) as a peer dependency and works in SvelteKit, Vite and any Svelte 5 app.
+
+### How do I add a tooltip to an element?
+
+Import the tooltip action and attach it with use:tooltip. Pass a string (use:tooltip={'Hello'}) for the simplest case, or an options object (use:tooltip={{ content: 'Hello', placement: 'right', delay: 200 }}) for full control.
+
+### Does it work on mobile and touch devices?
+
+Yes. On touch devices the default behavior is tap-to-toggle, with an optional long-press mode (touchBehavior: 'longpress'). Tapping outside dismisses the tooltip, and it auto-hides after touchHideDelay (default 3000ms).
+
+### How do I theme the tooltip?
+
+Use theme: 'auto' (default), 'light' or 'dark', or pass a custom TooltipTheme object with fields such as background, color, borderRadius, padding, shadow and maxWidth.
+
+### Is the tooltip accessible?
+
+Yes. Tooltips render with role="tooltip", are connected to their target via aria-describedby, open on keyboard focus, dismiss with Escape, and animations respect prefers-reduced-motion.
+
+### How does it avoid being clipped by overflow?
+
+Tooltips render in the browser's top layer using the native Popover API, so they are never clipped by overflow: hidden containers and are immune to z-index conflicts.
+
+### Does svelte-tooltip-gca have any dependencies?
+
+No runtime dependencies. The only peer dependency is Svelte 5 (^5.0.0).
+
+## License
+
+MIT — see the LICENSE file in the repository.

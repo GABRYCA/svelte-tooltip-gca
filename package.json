@@ -18,7 +18,8 @@
 	"homepage": "https://gabryca.github.io/svelte-tooltip-gca/",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build && npm run prepack",
+		"build": "node scripts/generate-ai-docs.mjs && vite build && npm run prepack",
+		"generate:ai-docs": "node scripts/generate-ai-docs.mjs",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"prepack": "svelte-kit sync && svelte-package && publint",

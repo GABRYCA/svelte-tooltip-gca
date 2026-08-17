@@ -1,6 +1,7 @@
 <script lang="ts">
     import {tooltip} from "$lib/index.js";
     import type {TooltipTheme, TooltipPlacement} from "$lib/index.js";
+    import {faqItems} from "./seo.js";
 
     type ThemeMode = "auto" | "light" | "dark";
 
@@ -213,6 +214,77 @@ import type {
     $effect(() => {
         setTheme(pageTheme);
     });
+
+    // --- Animated FAQ accordion ---
+    let openFaq = $state<number | null>(null);
+
+    const faqEase = "cubic-bezier(0.22, 1, 0.36, 1)";
+
+    function faqMotion() {
+        if (typeof window === "undefined") return 0;
+        return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 320;
+    }
+
+    function cancelFaqAnimations(panel: HTMLElement) {
+        panel.getAnimations().forEach((animation) => animation.cancel());
+    }
+
+    function toggleFaq(index: number) {
+        const panel = document.getElementById(`faq-answer-${index}`) as HTMLElement | null;
+        if (!panel) return;
+
+        if (openFaq === index) {
+            closeFaqPanel(panel);
+            openFaq = null;
+            return;
+        }
+
+        const previous = openFaq !== null ? document.getElementById(`faq-answer-${openFaq}`) : null;
+        if (previous && previous !== panel) closeFaqPanel(previous as HTMLElement);
+        openFaqPanel(panel);
+        openFaq = index;
+    }
+
+    function openFaqPanel(panel: HTMLElement) {
+        cancelFaqAnimations(panel);
+        const duration = faqMotion();
+        if (duration === 0) {
+            panel.style.height = "auto";
+            return;
+        }
+        panel.style.height = "0px";
+        const animation = panel.animate(
+            [
+                { height: "0px", opacity: 0, transform: "translateY(-4px)" },
+                { height: `${panel.scrollHeight}px`, opacity: 1, transform: "translateY(0)" }
+            ],
+            { duration, easing: faqEase }
+        );
+        animation.onfinish = () => {
+            panel.style.height = "auto";
+        };
+    }
+
+    function closeFaqPanel(panel: HTMLElement) {
+        cancelFaqAnimations(panel);
+        const duration = faqMotion();
+        if (duration === 0) {
+            panel.style.height = "0px";
+            return;
+        }
+        const height = panel.scrollHeight;
+        panel.style.height = `${height}px`;
+        const animation = panel.animate(
+            [
+                { height: `${height}px`, opacity: 1, transform: "translateY(0)" },
+                { height: "0px", opacity: 0, transform: "translateY(-4px)" }
+            ],
+            { duration, easing: faqEase }
+        );
+        animation.onfinish = () => {
+            panel.style.height = "0px";
+        };
+    }
 </script>
 
 <div class="page">
@@ -231,6 +303,7 @@ import type {
                 <a href="#examples">Examples</a>
                 <a href="#theming">Theming</a>
                 <a href="#api">API</a>
+                <a href="#faq">FAQ</a>
             </nav>
             <div class="theme-toggle" role="group" aria-label="Page theme">
                 <button
@@ -1145,6 +1218,36 @@ import type {
             </div>
         </section>
 
+        <section id="faq" class="section">
+            <h2>Frequently asked questions</h2>
+            <p class="section-intro">
+                Quick answers about installing, using and theming tooltips in Svelte 5.
+            </p>
+
+            <div class="faq-list">
+                {#each faqItems as item, index (item.question)}
+                    <div class="faq-item">
+                        <h3 class="faq-q">
+                            <button
+                                    class="faq-btn"
+                                    type="button"
+                                    id={`faq-question-${index}`}
+                                    aria-expanded={openFaq === index}
+                                    aria-controls={`faq-answer-${index}`}
+                                    onclick={() => toggleFaq(index)}
+                            >
+                                <span class="faq-question">{item.question}</span>
+                                <span class="faq-chevron" aria-hidden="true"></span>
+                            </button>
+                        </h3>
+                        <div class="faq-answer" id={`faq-answer-${index}`} role="region" aria-labelledby={`faq-question-${index}`}>
+                            <p>{item.answer}</p>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        </section>
+
         <section class="section features">
             <h2>Why svelte-tooltip-gca?</h2>
             <div class="feature-grid">
@@ -1908,6 +2011,87 @@ import type {
         background: var(--bg-muted);
         padding: 0.05em 0.3em;
         border-radius: 4px;
+    }
+
+    /* FAQ Section */
+    .faq-list {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .faq-item + .faq-item {
+        border-top: 1px solid var(--border);
+    }
+
+    .faq-q {
+        margin: 0;
+    }
+
+    .faq-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.05rem 1.35rem;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--fg);
+        font: inherit;
+        font-weight: 650;
+        font-size: 0.96rem;
+        line-height: 1.45;
+        text-align: left;
+        user-select: none;
+        transition: background-color 0.15s ease;
+    }
+
+    .faq-btn:hover {
+        background: color-mix(in srgb, var(--fg) 4%, transparent);
+    }
+
+    .faq-btn:focus-visible {
+        outline: 2px solid var(--accent-text);
+        outline-offset: -2px;
+    }
+
+    .faq-question {
+        min-width: 0;
+    }
+
+    .faq-chevron {
+        flex-shrink: 0;
+        width: 9px;
+        height: 9px;
+        margin-right: 4px;
+        border-right: 2px solid var(--fg-muted);
+        border-bottom: 2px solid var(--fg-muted);
+        transform: rotate(45deg) translateY(-2px);
+        transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+            border-color 0.22s ease;
+    }
+
+    .faq-btn[aria-expanded="true"] .faq-chevron {
+        transform: rotate(225deg) translateY(-2px);
+        border-color: var(--accent-text);
+    }
+
+    .faq-answer {
+        overflow: hidden;
+        height: 0;
+    }
+
+    .faq-answer p {
+        margin: 0;
+        padding: 0 1.35rem 1.15rem;
+        color: var(--fg-muted);
+        font-size: 0.925rem;
+        line-height: 1.7;
+        max-width: 72ch;
     }
 
     .code {
