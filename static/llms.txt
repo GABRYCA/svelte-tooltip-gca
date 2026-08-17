@@ -7,7 +7,7 @@ svelte-tooltip-gca is an npm package that adds tooltips to any Svelte 5 element 
 ## Optional
 
 - Package name: `svelte-tooltip-gca`
-- Latest version: `1.0.3`
+- Latest version: `1.0.4`
 - License: MIT
 - Author: AnonymousGCA (https://anonymousgca.eu)
 - Dependencies: 0 runtime dependencies; peer dependency `svelte ^5.0.0`

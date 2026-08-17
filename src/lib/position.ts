@@ -58,6 +58,7 @@ function computeShift(
 
 	let pos = place(target, tooltip, placement, offset);
 	pos = shiftCrossAxis(pos, tooltip, placement, vw, vh);
+	pos = clampToViewport({ ...pos, placement }, tooltip, vw, vh);
 
 	const arrowOffset = aimArrow(target, tooltip, pos, placement);
 
@@ -195,9 +196,16 @@ function clampToViewport(
 ): { top: number; left: number; placement: TooltipPlacement } {
 	return {
 		...result,
-		top: Math.min(Math.max(result.top, VIEWPORT_PADDING), vh - tooltip.height - VIEWPORT_PADDING),
-		left: Math.min(Math.max(result.left, VIEWPORT_PADDING), vw - tooltip.width - VIEWPORT_PADDING)
+		top: clampCoordinate(result.top, vh, tooltip.height),
+		left: clampCoordinate(result.left, vw, tooltip.width)
 	};
+}
+
+/** Clamp a coordinate without producing a negative upper bound on tiny viewports. */
+function clampCoordinate(value: number, viewportSize: number, tooltipSize: number): number {
+	const max = viewportSize - tooltipSize - VIEWPORT_PADDING;
+	if (max < VIEWPORT_PADDING) return Math.max(0, (viewportSize - tooltipSize) / 2);
+	return Math.min(Math.max(value, VIEWPORT_PADDING), max);
 }
 
 /**

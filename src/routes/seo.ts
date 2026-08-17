@@ -8,6 +8,8 @@ export const ogImageUrl = `${siteUrl}og-image.png`;
 
 export const title = 'svelte-tooltip-gca — Tooltips for Svelte 5 (Docs & Demo)';
 
+export const version = '1.0.4';
+
 export const description =
 	'Modern, theme-aware tooltip action (use:tooltip) for Svelte 5: automatic light/dark themes, mobile touch support, top-layer Popover API rendering and zero dependencies. Docs, quick start, API reference and live playground.';
 
@@ -78,7 +80,7 @@ export const softwareSchema = JSON.stringify({
 	url: siteUrl,
 	installUrl: 'https://www.npmjs.com/package/svelte-tooltip-gca',
 	downloadUrl: 'https://www.npmjs.com/package/svelte-tooltip-gca',
-	softwareVersion: '1.0.3',
+	softwareVersion: version,
 	license: 'https://opensource.org/licenses/MIT',
 	offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
 	author: { '@type': 'Person', name: 'AnonymousGCA', url: 'https://anonymousgca.eu' },

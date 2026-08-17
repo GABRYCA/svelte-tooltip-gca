@@ -170,10 +170,10 @@ Pass a partial \`TooltipTheme\` object — only override what you need:
 import type { TooltipTheme } from '${name}';
 
 const brand: TooltipTheme = {
-  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-  color: '#fff',
+  background: '#ff3e00',
+  color: '#1b1f24',
   borderRadius: '10px',
-  shadow: '0 12px 28px -8px rgba(99, 102, 241, 0.55)',
+  shadow: '0 12px 28px -8px rgba(255, 62, 0, 0.35)',
   padding: '8px 12px'
 };
 \`\`\`

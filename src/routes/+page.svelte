@@ -1,7 +1,8 @@
 <script lang="ts">
+    import {resolve} from "$app/paths";
     import {tooltip} from "$lib/index.js";
     import type {TooltipTheme, TooltipPlacement} from "$lib/index.js";
-    import {faqItems} from "./seo.js";
+    import {faqItems, version} from "./seo.js";
 
     type ThemeMode = "auto" | "light" | "dark";
 
@@ -10,12 +11,11 @@
 
     const codeInstall = "npm install svelte-tooltip-gca";
 
-    // Clean Solid Brand Theme
     const brandTheme: TooltipTheme = {
-        background: "#0284c7",
-        color: "#ffffff",
+        background: "#ff3e00",
+        color: "#1b1f24",
         border: "transparent",
-        shadow: "0 8px 20px rgba(2, 132, 199, 0.25)",
+        shadow: "0 8px 20px rgba(255, 62, 0, 0.25)",
         borderRadius: "8px",
         fontSize: "13px",
         padding: "8px 12px",
@@ -49,7 +49,7 @@
     let pgDuration = $state(200);
     let pgOffset = $state(8);
     let pgArrow = $state(true);
-    let pgPreset = $state("ocean");
+    let pgPreset = $state("svelte");
 
     const playgroundPresets: Record<string, { name: string; theme: TooltipTheme }> = {
         ocean: {
@@ -69,7 +69,7 @@
             name: "Svelte Orange",
             theme: {
                 background: "#ff3e00",
-                color: "#ffffff",
+                color: "#1b1f24",
                 border: "transparent",
                 shadow: "0 8px 20px rgba(255, 62, 0, 0.25)",
                 borderRadius: "8px",
@@ -165,15 +165,15 @@
 import type { TooltipTheme } from 'svelte-tooltip-gca';
 
 const myTheme: TooltipTheme = {
-  background: '#0284c7',
-  color: '#ffffff',
+  background: '#ff3e00',
+  color: '#1b1f24',
   borderRadius: '8px',
-  shadow: '0 8px 20px rgba(2, 132, 199, 0.25)',
+  shadow: '0 8px 20px rgba(255, 62, 0, 0.25)',
   padding: '8px 14px',
   fontSize: '13px'
 };
 
-// <button use:tooltip={{ content: 'Ocean blue', theme: myTheme }}>…</button>`;
+// <button use:tooltip={{ content: 'Svelte orange', theme: myTheme }}>…</button>`;
 
     const codeExports = `import {
   tooltip,          // Svelte action
@@ -255,10 +255,10 @@ import type {
         panel.style.height = "0px";
         const animation = panel.animate(
             [
-                { height: "0px", opacity: 0, transform: "translateY(-4px)" },
-                { height: `${panel.scrollHeight}px`, opacity: 1, transform: "translateY(0)" }
+                {height: "0px", opacity: 0, transform: "translateY(-4px)"},
+                {height: `${panel.scrollHeight}px`, opacity: 1, transform: "translateY(0)"}
             ],
-            { duration, easing: faqEase }
+            {duration, easing: faqEase}
         );
         animation.onfinish = () => {
             panel.style.height = "auto";
@@ -276,10 +276,10 @@ import type {
         panel.style.height = `${height}px`;
         const animation = panel.animate(
             [
-                { height: `${height}px`, opacity: 1, transform: "translateY(0)" },
-                { height: "0px", opacity: 0, transform: "translateY(-4px)" }
+                {height: `${height}px`, opacity: 1, transform: "translateY(0)"},
+                {height: "0px", opacity: 0, transform: "translateY(-4px)"}
             ],
-            { duration, easing: faqEase }
+            {duration, easing: faqEase}
         );
         animation.onfinish = () => {
             panel.style.height = "0px";
@@ -288,16 +288,17 @@ import type {
 </script>
 
 <div class="page">
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="header">
         <div class="header-inner">
-            <div class="brand">
+            <a class="brand" href={resolve("/")} aria-label="svelte-tooltip-gca home">
                 <span class="logo" aria-hidden="true">◎</span>
                 <div>
                     <strong>svelte-tooltip-gca</strong>
                     <span class="badge">Svelte 5</span>
                 </div>
-            </div>
-            <nav class="nav">
+            </a>
+            <nav class="nav" aria-label="Documentation">
                 <a href="#playground">Playground</a>
                 <a href="#quick-start">Quick start</a>
                 <a href="#examples">Examples</a>
@@ -308,6 +309,7 @@ import type {
             <div class="theme-toggle" role="group" aria-label="Page theme">
                 <button
                         class:active={pageTheme === "auto"}
+                        aria-pressed={pageTheme === "auto"}
                         onclick={() => setTheme("auto")}
                         use:tooltip={"Follow system preference"}
                 >
@@ -315,6 +317,7 @@ import type {
                 </button>
                 <button
                         class:active={pageTheme === "light"}
+                        aria-pressed={pageTheme === "light"}
                         onclick={() => setTheme("light")}
                         use:tooltip={"Force light theme"}
                 >
@@ -322,6 +325,7 @@ import type {
                 </button>
                 <button
                         class:active={pageTheme === "dark"}
+                        aria-pressed={pageTheme === "dark"}
                         onclick={() => setTheme("dark")}
                         use:tooltip={"Force dark theme"}
                 >
@@ -331,109 +335,130 @@ import type {
         </div>
     </header>
 
-    <main>
-        <section class="hero">
-            <p class="eyebrow">npm package · Svelte 5 action</p>
-            <h1>
-                Modern tooltips for<br/>
-                <span class="svelte-text">Svelte 5</span>
-            </h1>
-            <p class="lede">
-                Drop a <code>use:tooltip</code> action on any element. Auto light/dark
-                themes, smooth animations, mobile touch-friendly, and never hidden behind
-                other UI.
-            </p>
+    <main id="main-content" tabindex="-1">
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-grid">
+                <div class="hero-copy">
+                    <p class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span> npm package · v{version}
+                    </p>
+                    <h1 id="hero-title">
+                        Tooltips that stay<br/>
+                        <span class="svelte-text">in the flow.</span>
+                    </h1>
+                    <p class="lede">
+                        A small, dependency-free <code>use:tooltip</code> action for Svelte 5.
+                        It handles themes, touch, keyboard focus, animation, and viewport-aware
+                        positioning for you.
+                    </p>
 
-            <!-- Quick Command Copy Pill -->
-            <div class="install-pill-wrap">
-                <div class="install-pill">
-                    <span class="prompt-sign">$</span>
-                    <code>npm install svelte-tooltip-gca</code>
-                    <button
-                            class="copy-pill-btn"
-                            onclick={() => copyToClipboard(codeInstall, 'hero-install')}
-                            use:tooltip={"Copy install command"}
-                    >
-                        {copiedId === 'hero-install' ? '✓ Copied!' : 'Copy'}
-                    </button>
-                </div>
-            </div>
+                    <div class="install-pill-wrap">
+                        <div class="install-pill">
+                            <span class="prompt-sign">$</span>
+                            <code>npm install svelte-tooltip-gca</code>
+                            <button
+                                    class="copy-pill-btn"
+                                    onclick={() => copyToClipboard(codeInstall, 'hero-install')}
+                                    use:tooltip={"Copy install command"}
+                            >
+                                {copiedId === 'hero-install' ? '✓ Copied!' : 'Copy'}
+                            </button>
+                        </div>
+                    </div>
 
-            <div class="hero-actions">
-                <a class="btn primary" href="#playground">Try Live Playground</a>
-                <button
-                        class="btn ghost"
-                        use:tooltip={{
-                        content:
-                            "This tooltip portals to document.body via Popover API so it never clips!",
-                        placement: "bottom",
-                    }}
-                >
-                    Hover Preview
-                </button>
-            </div>
+                    <div class="hero-actions">
+                        <a class="btn primary" href="#playground">Try Live Playground</a>
+                        <button
+                                class="btn ghost"
+                                use:tooltip={{
+                                content:
+                                    "This tooltip portals to document.body via Popover API so it never clips!",
+                                placement: "bottom",
+                            }}
+                        >
+                            Hover Preview
+                        </button>
+                    </div>
 
-            <!-- Highlights Strip -->
-            <div class="hero-stats">
-                <div class="stat-item">
-                    <span class="stat-val">Svelte 5</span>
-                    <span class="stat-lbl">Runes Native</span>
+                    <div class="hero-stats" aria-label="Package highlights">
+                        <div class="stat-item">
+                            <span class="stat-val">Svelte 5</span>
+                            <span class="stat-lbl">Runes native</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-val">Top layer</span>
+                            <span class="stat-lbl">Popover API</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-val">0 deps</span>
+                            <span class="stat-lbl">Runtime lean</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <span class="stat-val">Top Layer</span>
-                    <span class="stat-lbl">Popover API</span>
-                </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item">
-                    <span class="stat-val">0 Dependencies</span>
-                    <span class="stat-lbl">Ultra Light</span>
-                </div>
-            </div>
 
-            <div class="hero-demo">
-                <button
-                        class="chip"
-                        use:tooltip={{
-                        content: "Top placement (default)",
-                        placement: "top",
-                    }}>Top
-                </button
-                >
-                <button
-                        class="chip"
-                        use:tooltip={{
+                <div class="hero-visual" role="group" aria-label="Interactive tooltip preview">
+                    <div class="visual-header">
+                        <span class="visual-kicker">Live preview</span>
+                        <span class="visual-status"><span aria-hidden="true"></span> Ready</span>
+                    </div>
+                    <div class="visual-stage">
+                        <span class="stage-label">Hover, focus, or tap a target</span>
+                        <button
+                                class="visual-target"
+                                use:tooltip={{
+                                content: "Placed with the native top layer",
+                                placement: "top",
+                            }}
+                        >
+                            <span class="target-dot" aria-hidden="true"></span>
+                            Try the tooltip
+                        </button>
+                        <span class="stage-note">The arrow re-aims as the panel shifts.</span>
+                    </div>
+                    <div class="hero-demo">
+                        <button
+                                class="chip"
+                                use:tooltip={{
                         content: "Right placement",
                         placement: "right",
                     }}>Right
-                </button
-                >
-                <button
-                        class="chip"
-                        use:tooltip={{
+                        </button>
+                        <button
+                                class="chip"
+                                use:tooltip={{
                         content: "Left placement",
                         placement: "left",
                     }}>Left
-                </button
-                >
-                <button
-                        class="chip"
-                        use:tooltip={{
+                        </button>
+                        <button
+                                class="chip"
+                                use:tooltip={{
+                        content: "Top placement (default)",
+                        placement: "top",
+                    }}>Top
+                        </button
+                        >
+                        <button
+                                class="chip"
+                                use:tooltip={{
                         content: "Bottom placement",
                         placement: "bottom",
                     }}>Bottom
-                </button
-                >
-                <button
-                        class="chip accent"
-                        use:tooltip={{
-                        content: "Solid blue brand theme",
+                        </button
+                        >
+                        <button
+                                class="chip accent"
+                                use:tooltip={{
+                        content: "Solid Svelte orange theme",
                         theme: brandTheme,
                         placement: "top",
                     }}
-                >
-                    Custom theme
-                </button>
+                        >
+                            Custom theme
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -669,18 +694,18 @@ import type {
                         </button>
                         <button
                                 class="btn secondary"
-                                use:tooltip={{ content: "Left", placement: "left" }}
-                        >Left
-                        </button
-                        >
-                        <button
-                                class="btn secondary"
                                 use:tooltip={{
                                 content: "Right",
                                 placement: "right",
                             }}
                         >Right
                         </button>
+                        <button
+                                class="btn secondary"
+                                use:tooltip={{ content: "Left", placement: "left" }}
+                        >Left
+                        </button
+                        >
                     </div>
                 </article>
 
@@ -1240,7 +1265,8 @@ import type {
                                 <span class="faq-chevron" aria-hidden="true"></span>
                             </button>
                         </h3>
-                        <div class="faq-answer" id={`faq-answer-${index}`} role="region" aria-labelledby={`faq-question-${index}`}>
+                        <div class="faq-answer" id={`faq-answer-${index}`} role="region"
+                             aria-labelledby={`faq-question-${index}`} aria-hidden={openFaq !== index}>
                             <p>{item.answer}</p>
                         </div>
                     </div>
@@ -1310,26 +1336,26 @@ import type {
         flex-direction: column;
         overflow-x: hidden;
 
-        /* Crisp Dark Slate Background */
-        --bg: #0b0f19;
-        --bg-elevated: #111827;
-        --bg-muted: #1f2937;
-        --fg: #f9fafb;
-        --fg-muted: #9ca3af;
-        --border: rgba(255, 255, 255, 0.08);
-        --border-strong: rgba(255, 255, 255, 0.18);
-        --accent: #0284c7;
-        --accent-hover: #0369a1;
-        --accent-soft: rgba(2, 132, 199, 0.15);
-        --accent-text: #38bdf8;
+        /* Svelte's orange and charcoal palette */
+        --bg: #1b1f24;
+        --bg-elevated: #24292f;
+        --bg-muted: #2b3138;
+        --fg: #f6f7f8;
+        --fg-muted: #aeb7bf;
+        --border: rgba(255, 255, 255, 0.12);
+        --border-strong: rgba(255, 255, 255, 0.24);
+        --accent: #ff3e00;
+        --accent-hover: #ff6b3d;
+        --accent-soft: rgba(255, 62, 0, 0.16);
+        --accent-text: #ff9476;
         --svelte-orange: #ff3e00;
         --svelte-orange-soft: rgba(255, 62, 0, 0.15);
         --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
         --shadow-lg: 0 16px 30px -8px rgba(0, 0, 0, 0.4);
-        --code-bg: #030712;
-        --code-fg: #f3f4f6;
-        --radius: 10px;
-        --radius-sm: 6px;
+        --code-bg: #111518;
+        --code-fg: #f1f4f5;
+        --radius: 18px;
+        --radius-sm: 11px;
 
         color-scheme: dark;
         background-color: var(--bg);
@@ -1339,41 +1365,41 @@ import type {
 
     /* Light Theme Override */
     :global(html[data-theme="light"]) .page {
-        --bg: #f8fafc;
+        --bg: #fffdfb;
         --bg-elevated: #ffffff;
-        --bg-muted: #f1f5f9;
-        --fg: #0f172a;
-        --fg-muted: #64748b;
-        --border: rgba(0, 0, 0, 0.08);
-        --border-strong: rgba(0, 0, 0, 0.16);
-        --accent: #0284c7;
-        --accent-hover: #0369a1;
-        --accent-soft: rgba(2, 132, 199, 0.1);
-        --accent-text: #0284c7;
+        --bg-muted: #fff3ee;
+        --fg: #1b1f24;
+        --fg-muted: #68727a;
+        --border: rgba(27, 31, 36, 0.12);
+        --border-strong: rgba(27, 31, 36, 0.22);
+        --accent: #ff3e00;
+        --accent-hover: #d93400;
+        --accent-soft: #fff0eb;
+        --accent-text: #b92f00;
         --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
         --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
-        --code-bg: #0f172a;
-        --code-fg: #f8fafc;
+        --code-bg: #fffaf8;
+        --code-fg: #252a2e;
         color-scheme: light;
     }
 
     @media (prefers-color-scheme: light) {
         :global(html:not([data-theme="dark"])) .page {
-            --bg: #f8fafc;
+            --bg: #fffdfb;
             --bg-elevated: #ffffff;
-            --bg-muted: #f1f5f9;
-            --fg: #0f172a;
-            --fg-muted: #64748b;
-            --border: rgba(0, 0, 0, 0.08);
-            --border-strong: rgba(0, 0, 0, 0.16);
-            --accent: #0284c7;
-            --accent-hover: #0369a1;
-            --accent-soft: rgba(2, 132, 199, 0.1);
-            --accent-text: #0284c7;
+            --bg-muted: #fff3ee;
+            --fg: #1b1f24;
+            --fg-muted: #68727a;
+            --border: rgba(27, 31, 36, 0.12);
+            --border-strong: rgba(27, 31, 36, 0.22);
+            --accent: #ff3e00;
+            --accent-hover: #d93400;
+            --accent-soft: #fff0eb;
+            --accent-text: #b92f00;
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
             --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
-            --code-bg: #0f172a;
-            --code-fg: #f8fafc;
+            --code-bg: #fffaf8;
+            --code-fg: #252a2e;
             color-scheme: light;
         }
     }
@@ -2072,7 +2098,7 @@ import type {
         border-bottom: 2px solid var(--fg-muted);
         transform: rotate(45deg) translateY(-2px);
         transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-            border-color 0.22s ease;
+        border-color 0.22s ease;
     }
 
     .faq-btn[aria-expanded="true"] .faq-chevron {
@@ -2474,6 +2500,1023 @@ import type {
         .pg-field label,
         .label-with-val {
             font-size: 0.72rem;
+        }
+    }
+
+    /* Refined documentation layout -------------------------------------- */
+    .page {
+        --bg: #fffdfb;
+        --bg-elevated: #ffffff;
+        --bg-muted: #fff3ee;
+        --fg: #1b1f24;
+        --fg-muted: #68727a;
+        --fg-subtle: #8a949a;
+        --border: #eadfd9;
+        --border-strong: #d8c7bf;
+        --accent: #ff3e00;
+        --accent-hover: #d93400;
+        --accent-soft: #fff0eb;
+        --accent-text: #b92f00;
+        --svelte-orange: #ff3e00;
+        --svelte-orange-soft: #fff0eb;
+        --success: #16834b;
+        --code-bg: #fffaf8;
+        --code-fg: #252a2e;
+        --code-border: #eadbd4;
+        --code-muted: #897a73;
+        --code-control-bg: #f3e7e1;
+        --code-control-hover: #ead9d1;
+        --shadow-sm: 0 1px 2px rgba(27, 31, 36, 0.06);
+        --shadow-md: 0 14px 34px rgba(27, 31, 36, 0.09);
+        --shadow-lg: 0 24px 64px rgba(27, 31, 36, 0.13);
+        --radius: 18px;
+        --radius-sm: 11px;
+
+        color-scheme: light;
+        background: var(--bg);
+        color: var(--fg);
+    }
+
+    :global(html[data-theme="dark"]) .page {
+        --bg: #1b1f24;
+        --bg-elevated: #24292f;
+        --bg-muted: #2b3138;
+        --fg: #f6f7f8;
+        --fg-muted: #aeb7bf;
+        --fg-subtle: #7f8a93;
+        --border: #3a424b;
+        --border-strong: #56616c;
+        --accent: #ff3e00;
+        --accent-hover: #ff6b3d;
+        --accent-soft: rgba(255, 62, 0, 0.16);
+        --accent-text: #ff9476;
+        --svelte-orange: #ff3e00;
+        --svelte-orange-soft: rgba(255, 62, 0, 0.16);
+        --success: #62d99b;
+        --code-bg: #111518;
+        --code-fg: #f1f4f5;
+        --code-border: #3a424b;
+        --code-muted: #aeb7bf;
+        --code-control-bg: #2c343b;
+        --code-control-hover: #3b454e;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+        --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.25);
+        --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.34);
+        color-scheme: dark;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :global(html:not([data-theme="light"])) .page {
+            --bg: #1b1f24;
+            --bg-elevated: #24292f;
+            --bg-muted: #2b3138;
+            --fg: #f6f7f8;
+            --fg-muted: #aeb7bf;
+            --fg-subtle: #7f8a93;
+            --border: #3a424b;
+            --border-strong: #56616c;
+            --accent: #ff3e00;
+            --accent-hover: #ff6b3d;
+            --accent-soft: rgba(255, 62, 0, 0.16);
+            --accent-text: #ff9476;
+            --svelte-orange: #ff3e00;
+            --svelte-orange-soft: rgba(255, 62, 0, 0.16);
+            --success: #62d99b;
+            --code-bg: #111518;
+            --code-fg: #f1f4f5;
+            --code-border: #3a424b;
+            --code-muted: #aeb7bf;
+            --code-control-bg: #2c343b;
+            --code-control-hover: #3b454e;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.25);
+            --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.34);
+            color-scheme: dark;
+        }
+    }
+
+    :global(html) {
+        scroll-padding-top: 5rem;
+    }
+
+    .skip-link {
+        position: fixed;
+        left: 1rem;
+        top: 0.75rem;
+        z-index: 100;
+        padding: 0.55rem 0.8rem;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #1b1f24;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transform: translateY(-180%);
+        transition: transform 0.15s ease;
+    }
+
+    .skip-link:focus {
+        transform: translateY(0);
+        color: #1b1f24;
+    }
+
+    .header {
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 1px 0 color-mix(in srgb, var(--fg) 3%, transparent);
+    }
+
+    .header-inner {
+        max-width: 1180px;
+        padding: 0.75rem 1.5rem;
+        gap: 1rem;
+    }
+
+    .brand {
+        flex-shrink: 0;
+        color: var(--fg);
+        gap: 0.7rem;
+        font-size: 0.9rem;
+        text-decoration: none;
+    }
+
+    .brand:hover {
+        color: var(--fg);
+        text-decoration: none;
+    }
+
+    .brand > div {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .logo {
+        width: 2.2rem;
+        height: 2.2rem;
+        border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+        border-radius: 12px;
+        background: var(--accent);
+        box-shadow: inset 0 -3px 0 color-mix(in srgb, #000 14%, transparent);
+    }
+
+    .badge {
+        margin-left: 0;
+        padding: 0.2rem 0.5rem;
+        border: 1px solid color-mix(in srgb, var(--svelte-orange) 22%, transparent);
+        background: var(--svelte-orange-soft);
+        color: var(--svelte-orange);
+    }
+
+    .nav {
+        flex: 0 1 auto;
+        margin-left: auto;
+        gap: 0.15rem;
+        font-size: 0.82rem;
+    }
+
+    .nav a {
+        padding: 0.4rem 0.55rem;
+        border-radius: 7px;
+        color: var(--fg-muted);
+    }
+
+    .nav a:hover {
+        background: var(--bg-muted);
+        color: var(--fg);
+        text-decoration: none;
+    }
+
+    .theme-toggle {
+        flex-shrink: 0;
+        padding: 3px;
+        border: 1px solid var(--border);
+        background: var(--bg-muted);
+    }
+
+    .theme-toggle button {
+        padding: 0.35rem 0.6rem;
+        color: var(--fg-muted);
+    }
+
+    .theme-toggle button.active {
+        background: var(--bg-elevated);
+        color: var(--fg);
+        box-shadow: var(--shadow-sm);
+    }
+
+    main {
+        max-width: 1180px;
+        padding: 0 1.5rem 5rem;
+    }
+
+    .hero {
+        padding: 5rem 0 3.75rem;
+        text-align: left;
+    }
+
+    .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 0.84fr);
+        align-items: center;
+        gap: clamp(2.5rem, 7vw, 6.5rem);
+    }
+
+    .hero-copy {
+        min-width: 0;
+    }
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1.15rem;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--accent-text);
+        font-size: 0.72rem;
+        font-weight: 750;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .eyebrow-mark {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .hero h1 {
+        max-width: 11ch;
+        margin: 0 0 1.25rem;
+        font-size: clamp(2.9rem, 6vw, 5.1rem);
+        line-height: 0.98;
+        letter-spacing: -0.065em;
+        font-weight: 820;
+    }
+
+    .svelte-text {
+        color: var(--svelte-orange);
+    }
+
+    .lede {
+        max-width: 37rem;
+        margin: 0 0 1.6rem;
+        color: var(--fg-muted);
+        font-size: clamp(1rem, 1.4vw, 1.15rem);
+        line-height: 1.7;
+    }
+
+    .lede code,
+    .section-intro code,
+    .demo-card p code,
+    .hint code,
+    .notes li code,
+    .feature code {
+        padding: 0.12em 0.35em;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: var(--bg-muted);
+        color: var(--accent-text);
+        font-size: 0.86em;
+    }
+
+    .install-pill-wrap {
+        justify-content: flex-start;
+        margin-bottom: 1.25rem;
+    }
+
+    .install-pill {
+        max-width: 100%;
+        padding: 0.42rem 0.45rem 0.42rem 0.8rem;
+        border: 1px solid var(--code-border);
+        border-radius: 10px;
+        background: var(--code-bg);
+        box-shadow: var(--shadow-md);
+    }
+
+    .install-pill code {
+        font-size: 0.8rem;
+    }
+
+    .prompt-sign {
+        color: var(--accent);
+    }
+
+    .copy-pill-btn {
+        padding: 0.34rem 0.65rem;
+        border: 1px solid var(--code-border);
+        border-radius: 7px;
+        background: var(--code-control-bg);
+        color: var(--code-fg);
+    }
+
+    .copy-pill-btn:hover {
+        border-color: var(--code-border);
+        background: var(--code-control-hover);
+        color: var(--code-fg);
+    }
+
+    .hero-actions {
+        justify-content: flex-start;
+        margin-bottom: 2.25rem;
+    }
+
+    .btn {
+        min-height: 2.7rem;
+        padding: 0.65rem 1rem;
+        border-radius: 9px;
+    }
+
+    .btn.primary {
+        background: var(--accent);
+        color: #1b1f24;
+        box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 24%, transparent);
+    }
+
+    .btn.primary:hover {
+        background: var(--accent-hover);
+        color: #1b1f24;
+    }
+
+    .btn.ghost {
+        border-color: var(--border-strong);
+        background: transparent;
+    }
+
+    .btn.ghost:hover {
+        background: var(--bg-elevated);
+    }
+
+    .hero-stats {
+        justify-content: flex-start;
+        width: auto;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        gap: 1.1rem;
+    }
+
+    .stat-item {
+        align-items: flex-start;
+    }
+
+    .stat-val {
+        font-size: 0.82rem;
+        letter-spacing: -0.01em;
+    }
+
+    .stat-lbl {
+        font-size: 0.68rem;
+        color: var(--fg-subtle);
+    }
+
+    .stat-divider {
+        height: 2rem;
+        background: var(--border);
+    }
+
+    .hero-visual {
+        position: relative;
+        min-width: 0;
+        padding: 1rem;
+        overflow: hidden;
+        border: 1px solid var(--border-strong);
+        border-top: 3px solid var(--accent);
+        border-radius: 22px;
+        background: var(--bg-elevated);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .visual-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.25rem 0.25rem 0.9rem;
+    }
+
+    .visual-kicker,
+    .stage-label {
+        color: var(--fg-subtle);
+        font-size: 0.68rem;
+        font-weight: 750;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .visual-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--success);
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .visual-status span {
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 50%;
+        background: var(--success);
+    }
+
+    .visual-stage {
+        display: flex;
+        min-height: 225px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        border: 1px dashed var(--border-strong);
+        border-radius: 15px;
+        background: var(--bg-muted);
+        text-align: center;
+    }
+
+    .visual-target {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-height: 3.1rem;
+        padding: 0.8rem 1.1rem;
+        border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent);
+        border-radius: 10px;
+        background: var(--accent);
+        color: #1b1f24;
+        cursor: pointer;
+        font: inherit;
+        font-size: 0.92rem;
+        font-weight: 750;
+        box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 22%, transparent);
+        transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .visual-target:hover {
+        background: var(--accent-hover);
+        color: #1b1f24;
+        transform: translateY(-2px);
+    }
+
+    .target-dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18);
+    }
+
+    .stage-note {
+        color: var(--fg-muted);
+        font-size: 0.78rem;
+    }
+
+    .hero-visual .hero-demo {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: stretch;
+        gap: 0.5rem;
+        margin-top: 0.8rem;
+    }
+
+    .chip {
+        width: 100%;
+        padding: 0.55rem 0.65rem;
+        border-radius: 8px;
+        background: var(--bg-muted);
+        box-shadow: none;
+        font-size: 0.78rem;
+    }
+
+    .chip:hover {
+        border-color: var(--accent);
+        background: var(--bg-elevated);
+    }
+
+    .chip.accent {
+        background: var(--svelte-orange);
+        color: #1b1f24;
+    }
+
+    .section {
+        padding: 3.5rem 0 1rem;
+        scroll-margin-top: 5rem;
+    }
+
+    .section h2 {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        margin: 0 0 0.6rem;
+        font-size: clamp(1.55rem, 3vw, 2rem);
+        letter-spacing: -0.04em;
+    }
+
+    .section h2::before {
+        width: 0.45rem;
+        height: 1.65rem;
+        border-radius: 5px;
+        background: var(--accent);
+        content: "";
+    }
+
+    .section-intro {
+        max-width: 50rem;
+        margin: 0 0 1.5rem 1.15rem;
+        color: var(--fg-muted);
+        line-height: 1.7;
+    }
+
+    .playground-card {
+        padding: clamp(1rem, 3vw, 1.5rem);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius);
+        background: var(--bg-elevated);
+        box-shadow: var(--shadow-md);
+    }
+
+    .pg-grid {
+        gap: clamp(1.25rem, 4vw, 2.25rem);
+    }
+
+    .pg-controls {
+        gap: 1.15rem;
+    }
+
+    .pg-field label,
+    .label-with-val {
+        color: var(--fg-muted);
+        font-size: 0.73rem;
+        font-weight: 750;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .label-with-val strong {
+        color: var(--accent-text);
+        font-size: 0.78rem;
+        letter-spacing: 0;
+    }
+
+    .input-text,
+    .select-input {
+        min-height: 2.65rem;
+        border-color: var(--border-strong);
+        background: var(--bg-muted);
+        color: var(--fg);
+    }
+
+    .input-text:focus,
+    .select-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .checkbox-label {
+        color: var(--fg-muted);
+    }
+
+    .range-input {
+        height: 1.1rem;
+    }
+
+    .pg-stage {
+        min-height: 190px;
+        padding: 1.5rem;
+        border-radius: 15px;
+        background: var(--bg-muted);
+    }
+
+    .pg-target-btn {
+        border-radius: 10px;
+        background: var(--accent);
+        color: #1b1f24;
+        box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+
+    .pg-target-btn:hover {
+        background: var(--accent-hover);
+        color: #1b1f24;
+    }
+
+    .code-wrapper {
+        background: var(--code-bg);
+        border-color: var(--code-border);
+        border-radius: var(--radius-sm);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .code-header {
+        min-height: 2.4rem;
+        padding: 0.45rem 0.7rem;
+        border-bottom-color: var(--code-border);
+        background: var(--code-control-bg);
+    }
+
+    .copy-code-btn {
+        border-radius: 7px;
+        border-color: var(--code-border);
+        background: var(--code-control-bg);
+        color: var(--code-fg);
+    }
+
+    .copy-code-btn:hover {
+        border-color: var(--code-border);
+        background: var(--code-control-hover);
+        color: var(--code-fg);
+    }
+
+    .code {
+        background: var(--code-bg);
+        color: var(--code-fg);
+        font-size: 0.78rem;
+        line-height: 1.65;
+    }
+
+    .code-lang {
+        color: var(--code-muted);
+    }
+
+    .dot.red {
+        background: var(--svelte-orange);
+    }
+
+    .steps,
+    .grid,
+    .feature-grid {
+        gap: 1.1rem;
+    }
+
+    .card,
+    .feature,
+    .faq-list {
+        border-color: var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .card:hover,
+    .feature:hover {
+        border-color: var(--border-strong);
+        box-shadow: var(--shadow-md);
+    }
+
+    .card h3,
+    .feature h3 {
+        letter-spacing: -0.02em;
+    }
+
+    .step-num {
+        width: 1.8rem;
+        height: 1.8rem;
+        margin-bottom: 0.7rem;
+        background: var(--accent-soft);
+        color: var(--accent-text);
+    }
+
+    .hint,
+    .demo-card p,
+    .feature p,
+    .notes li {
+        line-height: 1.65;
+    }
+
+    .demo-row {
+        gap: 0.6rem;
+    }
+
+    .btn.secondary {
+        background: var(--bg-muted);
+        border-color: var(--border-strong);
+        box-shadow: none;
+    }
+
+    .btn.secondary:hover {
+        border-color: var(--accent);
+        background: var(--bg-elevated);
+    }
+
+    .linkish {
+        color: var(--accent-text);
+    }
+
+    .clip-box {
+        background: var(--bg-muted);
+        border-color: var(--border-strong);
+    }
+
+    table {
+        font-size: 0.86rem;
+    }
+
+    th,
+    td {
+        padding: 0.75rem 0.8rem;
+        border-bottom-color: var(--border);
+    }
+
+    th {
+        background: var(--bg-muted);
+        color: var(--fg-muted);
+    }
+
+    td code {
+        border: 1px solid var(--border);
+        background: var(--bg-muted);
+        color: var(--accent-text);
+    }
+
+    .feature {
+        border-top: 3px solid var(--accent);
+    }
+
+    .feature-icon {
+        display: inline-grid;
+        width: 2.15rem;
+        height: 2.15rem;
+        place-items: center;
+        border-radius: 9px;
+        background: var(--accent-soft);
+        font-size: 1.15rem;
+    }
+
+    .faq-btn:hover {
+        background: var(--bg-muted);
+    }
+
+    .faq-answer p {
+        line-height: 1.75;
+    }
+
+    .faq-btn:focus-visible,
+    .btn:focus-visible,
+    .chip:focus-visible,
+    .copy-pill-btn:focus-visible,
+    .copy-code-btn:focus-visible,
+    .visual-target:focus-visible,
+    .theme-toggle button:focus-visible,
+    .input-text:focus-visible,
+    .select-input:focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    .footer {
+        padding: 2rem 1.5rem;
+        border-top-color: var(--border);
+        background: var(--bg-muted);
+    }
+
+    @media (max-width: 920px) {
+        .hero-grid {
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+        }
+
+        .hero-copy {
+            max-width: 42rem;
+        }
+
+        .hero-visual {
+            max-width: 43rem;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .header-inner {
+            padding: 0.65rem 1rem;
+        }
+
+        .nav {
+            display: none;
+        }
+
+        .theme-toggle {
+            margin-left: auto;
+        }
+
+        main {
+            padding: 0 1rem 4rem;
+        }
+
+        .hero {
+            padding: 3.5rem 0 2.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.7rem, 13vw, 4.1rem);
+        }
+
+        .hero-stats {
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+
+        .hero-actions {
+            gap: 0.6rem;
+        }
+
+        .hero-actions .btn {
+            flex: 1 1 12rem;
+        }
+
+        .stat-divider {
+            width: 1px;
+            height: 1.8rem;
+        }
+
+        .section {
+            padding-top: 2.75rem;
+        }
+
+        .pg-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .copy-pill-btn,
+        .copy-code-btn,
+        .theme-toggle button {
+            min-height: 2rem;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .brand {
+            font-size: 0.8rem;
+        }
+
+        .brand > div {
+            display: block;
+        }
+
+        .badge {
+            display: block;
+            width: fit-content;
+            margin-top: 0.2rem;
+            font-size: 0.58rem;
+        }
+
+        .brand strong {
+            display: block;
+            max-width: 10rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .theme-toggle button {
+            padding: 0.32rem 0.45rem;
+            font-size: 0.72rem;
+        }
+
+        .hero {
+            padding-top: 2.75rem;
+        }
+
+        .hero h1 {
+            max-width: none;
+            font-size: clamp(2.2rem, 12vw, 3.35rem);
+        }
+
+        .hero-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            width: 100%;
+        }
+
+        .hero-actions .btn {
+            width: 100%;
+        }
+
+        .install-pill {
+            width: 100%;
+            gap: 0.4rem;
+        }
+
+        .install-pill code {
+            font-size: 0.7rem;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr);
+            width: 100%;
+            align-items: flex-start;
+            gap: 0.65rem;
+        }
+
+        .stat-divider {
+            align-self: stretch;
+            height: auto;
+        }
+
+        .stat-val {
+            font-size: 0.74rem;
+        }
+
+        .stat-lbl {
+            font-size: 0.6rem;
+        }
+
+        .hero-visual {
+            padding: 0.75rem;
+            border-radius: 17px;
+        }
+
+        .visual-stage {
+            min-height: 180px;
+            padding: 1rem;
+        }
+
+        .hero-visual .hero-demo {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .section-intro {
+            margin-left: 0;
+        }
+
+        .table-wrap {
+            margin-inline: -0.25rem;
+            overflow-x: auto;
+            padding-inline: 0.25rem;
+        }
+
+        table {
+            min-width: 620px;
+        }
+
+        .pg-row {
+            grid-template-columns: 1fr;
+        }
+
+        .code {
+            font-size: 0.72rem;
+        }
+
+        .code-wrapper {
+            max-width: 100%;
+        }
+
+        .card {
+            padding: 1rem;
+        }
+
+        .grid,
+        .steps,
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .footer {
+            padding: 1.5rem 1rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .theme-toggle button {
+            padding-inline: 0.35rem;
+            font-size: 0.68rem;
+        }
+
+        .header-inner {
+            gap: 0.5rem;
+        }
+
+        .hero-stats {
+            gap: 0.4rem;
+        }
+
+        .stat-val {
+            font-size: 0.7rem;
+        }
+
+        .stat-lbl {
+            font-size: 0.56rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :global(html) {
+            scroll-behavior: auto;
+        }
+
+        .page *,
+        .page *::before,
+        .page *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+            transition-duration: 0.01ms !important;
         }
     }
 </style>

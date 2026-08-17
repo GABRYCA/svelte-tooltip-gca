@@ -2,7 +2,7 @@
 
 > Modern, theme-aware tooltip action (use:tooltip) for Svelte 5: automatic light/dark themes, mobile touch support, top-layer Popover API rendering and zero dependencies. Docs, quick start, API reference and live playground.. MIT licensed, no runtime dependencies, peer dependency `svelte ^5.0.0`.
 
-This file contains the full documentation for the `svelte-tooltip-gca` package (v1.0.3) so LLMs and AI agents can answer questions about installation, usage, options, theming, mobile behavior, accessibility and the FAQ without fetching multiple pages.
+This file contains the full documentation for the `svelte-tooltip-gca` package (v1.0.4) so LLMs and AI agents can answer questions about installation, usage, options, theming, mobile behavior, accessibility and the FAQ without fetching multiple pages.
 
 ## What it is
 
@@ -102,10 +102,10 @@ Pass a partial `TooltipTheme` object — only override what you need:
 import type { TooltipTheme } from 'svelte-tooltip-gca';
 
 const brand: TooltipTheme = {
-  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-  color: '#fff',
+  background: '#ff3e00',
+  color: '#1b1f24',
   borderRadius: '10px',
-  shadow: '0 12px 28px -8px rgba(99, 102, 241, 0.55)',
+  shadow: '0 12px 28px -8px rgba(255, 62, 0, 0.35)',
   padding: '8px 12px'
 };
 ```

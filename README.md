@@ -17,7 +17,7 @@ Modern, theme-aware tooltips for **Svelte 5** as a simple action:
 - Smooth **enter and leave animation** (respects `prefers-reduced-motion`)
 - **Smart positioning**: stays on the preferred side, shifts to fit, and the arrow re-aims at the target
 
-Demo and Docs: [Github Pages](https://gabryca.github.io/svelte-tooltip-gca/)
+Demo and Docs: [GitHub Pages](https://gabryca.github.io/svelte-tooltip-gca/)
 
 NPM Repo: [npmjs.com/package/svelte-tooltip-gca](https://www.npmjs.com/package/svelte-tooltip-gca)
 
@@ -137,10 +137,10 @@ Detection order:
   import type { TooltipTheme } from 'svelte-tooltip-gca';
 
   const brand: TooltipTheme = {
-    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-    color: '#fff',
+    background: '#ff3e00',
+    color: '#1b1f24',
     borderRadius: '10px',
-    shadow: '0 12px 28px -8px rgba(99, 102, 241, 0.55)',
+    shadow: '0 12px 28px -8px rgba(255, 62, 0, 0.35)',
     padding: '8px 12px'
   };
 </script>
@@ -195,6 +195,24 @@ npm publish       # publish to npm
 ```
 
 Library source lives in `src/lib`. The showcase app lives in `src/routes`.
+
+---
+
+## Release Notes
+
+### [1.0.4] - 2026-08-17
+
+#### Changed
+
+- Refreshed the docs with a responsive two-column hero, clearer navigation, accessible skip and focus states, and more focused playground, API, and example layouts.
+- Improved tooltip viewport handling so fallback positions remain visible when neither the preferred nor opposite side has enough room.
+- Constrained tooltip panels to the viewport and made long content scroll within the panel instead of escaping the screen.
+
+#### Fixed
+
+- Prevented edge-case positioning from producing negative coordinates on very small viewports.
+
+See the complete history in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 

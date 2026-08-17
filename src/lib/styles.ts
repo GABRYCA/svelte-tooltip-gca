@@ -25,7 +25,8 @@ export function ensureStyles(): void {
 	/* Layout */
 	position: fixed;
 	z-index: var(--stt-z-index, 9999);
-	max-width: var(--stt-max-width, 260px);
+	max-width: min(var(--stt-max-width, 260px), max(0px, calc(100vw - 16px)));
+	max-height: max(0px, calc(100vh - 16px));
 	border-radius: var(--stt-radius, 8px);
 	box-shadow: var(--stt-shadow, 0 10px 25px -5px rgba(0, 0, 0, 0.25));
 	font-size: var(--stt-font-size, 13px);
@@ -58,6 +59,11 @@ export function ensureStyles(): void {
 
 .svelte-tooltip-gca[data-animation="false"] {
 	transition: none;
+}
+
+.svelte-tooltip-gca__content {
+	max-height: max(0px, calc(100vh - 32px));
+	overflow-y: auto;
 }
 
 /* ---- transform-origin per placement ------------------------------------ */
