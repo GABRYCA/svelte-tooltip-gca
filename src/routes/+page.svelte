@@ -1321,6 +1321,13 @@ import type {
             <strong>svelte-tooltip-gca</strong> · MIT License · Built for
             <a href="https://svelte.dev" target="_blank" rel="noreferrer">Svelte 5</a>
         </p>
+        <p class="footer-links">
+            <a href="https://github.com/GABRYCA/svelte-tooltip-gca" target="_blank" rel="noreferrer">GitHub repository</a>
+            <span aria-hidden="true"> · </span>
+            <a href="https://www.npmjs.com/package/svelte-tooltip-gca" target="_blank" rel="noreferrer">npm package</a>
+            <span aria-hidden="true"> · </span>
+            <a href="https://anonymousgca.eu" target="_blank" rel="noreferrer">Author: AnonymousGCA</a>
+        </p>
     </footer>
 </div>
 
@@ -1584,16 +1591,13 @@ import type {
         min-width: 0;
     }
 
-    .copy-pill-btn {
-        flex-shrink: 0;
-    }
-
     .prompt-sign {
         color: var(--accent-text);
         font-weight: bold;
     }
 
     .copy-pill-btn {
+        flex-shrink: 0;
         background: var(--accent-soft);
         border: 1px solid var(--border);
         color: var(--accent-text);
@@ -3272,6 +3276,11 @@ import type {
         padding: 2rem 1.5rem;
         border-top-color: var(--border);
         background: var(--bg-muted);
+    }
+
+    .footer-links {
+        margin: 0.5rem 0 0;
+        font-size: 0.85rem;
     }
 
     @media (max-width: 920px) {

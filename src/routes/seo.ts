@@ -8,7 +8,7 @@ export const ogImageUrl = `${siteUrl}og-image.png`;
 
 export const title = 'svelte-tooltip-gca — Tooltips for Svelte 5 (Docs & Demo)';
 
-export const version = '1.0.4';
+export const version = '1.0.5';
 
 export const description =
 	'Modern, theme-aware tooltip action (use:tooltip) for Svelte 5: automatic light/dark themes, mobile touch support, top-layer Popover API rendering and zero dependencies. Docs, quick start, API reference and live playground.';

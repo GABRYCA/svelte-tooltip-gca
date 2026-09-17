@@ -26,13 +26,15 @@ export function computePosition(
 	target: DOMRect,
 	tooltip: DOMRect,
 	preferred: TooltipPlacement,
-	offset: number,
-	overflowBehavior: TooltipOverflowBehavior = 'shift'
+	offset = 8,
+	overflowBehavior: TooltipOverflowBehavior = 'shift',
+	viewport?: { width: number; height: number }
 ): PositionResult {
+	const safeOffset = Number.isFinite(offset) ? (offset as number) : 8;
 	if (overflowBehavior === 'flip') {
-		return computeFlip(target, tooltip, preferred, offset);
+		return computeFlip(target, tooltip, preferred, safeOffset, viewport);
 	}
-	return computeShift(target, tooltip, preferred, offset);
+	return computeShift(target, tooltip, preferred, safeOffset, viewport);
 }
 
 /* ------------------------------------------------------------------ */
@@ -43,10 +45,10 @@ function computeShift(
 	target: DOMRect,
 	tooltip: DOMRect,
 	preferred: TooltipPlacement,
-	offset: number
+	offset: number,
+	viewport?: { width: number; height: number }
 ): PositionResult {
-	const vw = window.innerWidth;
-	const vh = window.innerHeight;
+	const { vw, vh } = getViewportSize(viewport);
 
 	let placement = preferred;
 	if (!fitsPrimaryAxis(place(target, tooltip, preferred, offset), tooltip, preferred, vh, vw)) {
@@ -73,10 +75,10 @@ function computeFlip(
 	target: DOMRect,
 	tooltip: DOMRect,
 	preferred: TooltipPlacement,
-	offset: number
+	offset: number,
+	viewport?: { width: number; height: number }
 ): PositionResult {
-	const vw = window.innerWidth;
-	const vh = window.innerHeight;
+	const { vw, vh } = getViewportSize(viewport);
 
 	const candidates: TooltipPlacement[] = [preferred, ...flipOrder(preferred)];
 
@@ -96,6 +98,53 @@ function computeFlip(
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
+
+/**
+ * Viewport size with SSR / test fallbacks.
+ * Prefers `visualViewport` (accurate on mobile with keyboard / pinch-zoom),
+ * falls back to `window.innerWidth/Height`, then `documentElement` client
+ * size, then a sane default so imports never crash under Bun / Node.
+ */
+function getViewportSize(explicit?: { width: number; height: number }): {
+	vw: number;
+	vh: number;
+} {
+	if (explicit && Number.isFinite(explicit.width) && Number.isFinite(explicit.height)) {
+		return { vw: explicit.width, vh: explicit.height };
+	}
+	if (typeof window !== 'undefined') {
+		const vv =
+			typeof window.visualViewport !== 'undefined' ? window.visualViewport : undefined;
+		const vw =
+			(vv?.width ??
+				window.innerWidth ??
+				(typeof document !== 'undefined'
+					? document.documentElement?.clientWidth
+					: undefined)) ||
+			1024;
+		const vh =
+			(vv?.height ??
+				window.innerHeight ??
+				(typeof document !== 'undefined'
+					? document.documentElement?.clientHeight
+					: undefined)) ||
+			768;
+		// Clamp against the layout viewport so scrollbars never push the tip off-screen.
+		const layoutW =
+			typeof document !== 'undefined'
+				? document.documentElement?.clientWidth
+				: undefined;
+		const layoutH =
+			typeof document !== 'undefined'
+				? document.documentElement?.clientHeight
+				: undefined;
+		return {
+			vw: layoutW ? Math.min(vw, Math.max(layoutW, 0)) || vw : vw,
+			vh: layoutH ? Math.min(vh, Math.max(layoutH, 0)) || vh : vh
+		};
+	}
+	return { vw: 1024, vh: 768 };
+}
 
 function place(
 	target: DOMRect,
@@ -219,10 +268,12 @@ function aimArrow(
 	placement: TooltipPlacement
 ): number {
 	if (placement === 'top' || placement === 'bottom') {
+		if (tooltip.width < ARROW_EDGE_PADDING * 2) return tooltip.width / 2;
 		const targetCentreX = target.left + target.width / 2;
 		const raw = targetCentreX - pos.left;
 		return Math.max(ARROW_EDGE_PADDING, Math.min(raw, tooltip.width - ARROW_EDGE_PADDING));
 	}
+	if (tooltip.height < ARROW_EDGE_PADDING * 2) return tooltip.height / 2;
 	const targetCentreY = target.top + target.height / 2;
 	const raw = targetCentreY - pos.top;
 	return Math.max(ARROW_EDGE_PADDING, Math.min(raw, tooltip.height - ARROW_EDGE_PADDING));

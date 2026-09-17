@@ -8,8 +8,8 @@ export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
  * How the tooltip behaves when it overflows the viewport.
  * - `'shift'` — stay on the preferred side, slide along the cross-axis, and
  *   re-aim the arrow at the target (default).
- * - `'flip'` — try the opposite side, then perpendicular sides (legacy)... honestly I think that it doesn't work anymore but
- * 	 it was already planned for removal (=
+ * - `'flip'` — legacy strategy: try the opposite side, then perpendicular
+ *   sides. Kept for backwards compatibility; prefer `'shift'`.
  */
 export type TooltipOverflowBehavior = 'shift' | 'flip';
 
@@ -31,7 +31,7 @@ export interface TooltipTheme {
 	fontFamily?: string;
 	fontWeight?: string;
 	padding?: string;
-	maxWidth?: string;
+	maxWidth?: string | number;
 	arrowSize?: string | number;
 	zIndex?: number | string;
 }

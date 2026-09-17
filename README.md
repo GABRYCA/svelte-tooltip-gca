@@ -19,7 +19,11 @@ Modern, theme-aware tooltips for **Svelte 5** as a simple action:
 
 Demo and Docs: [GitHub Pages](https://gabryca.github.io/svelte-tooltip-gca/)
 
+GitHub repository: [github.com/GABRYCA/svelte-tooltip-gca](https://github.com/GABRYCA/svelte-tooltip-gca)
+
 NPM Repo: [npmjs.com/package/svelte-tooltip-gca](https://www.npmjs.com/package/svelte-tooltip-gca)
+
+Author: [AnonymousGCA](https://anonymousgca.eu)
 
 ---
 
@@ -29,7 +33,13 @@ NPM Repo: [npmjs.com/package/svelte-tooltip-gca](https://www.npmjs.com/package/s
 npm install svelte-tooltip-gca
 ```
 
-Peer dependency: `svelte` ^5.0.0
+or with Bun:
+
+```sh
+bun add svelte-tooltip-gca
+```
+
+Peer dependency: `svelte` ^5.0.0. Zero runtime dependencies. Works on Node.js (npm) and Bun 1.4+.
 
 ---
 
@@ -200,6 +210,19 @@ Library source lives in `src/lib`. The showcase app lives in `src/routes`.
 
 ## Release Notes
 
+### [1.0.5] - 2026-09-17
+
+#### Fixed
+
+- Fixed pen hover, hybrid-laptop sticky clicks, keyboard-click handling, post-touch focus, container `focusin`/`focusout`, long-press context menu, resize/scroll repositioning, timer leaks, reduced-motion removal delay, `window.matchMedia` guards, custom-theme `undefined` handling, tiny-tooltip arrow clamping, non-finite offsets, and mobile `visualViewport` measurement.
+
+#### Changed
+
+- `exports` now include `import` / `default` for Bun and Node resolvers; `sideEffects: false` for better tree-shaking.
+- Upgraded dev dependencies (`@sveltejs/kit` 2.70.3, `@sveltejs/vite-plugin-svelte` 7.3.0, `publint` 0.3.24, `svelte` 5.57.0, `svelte-check` 4.7.6, `vite` 8.3.0). TypeScript stays on 6.0.3 (latest 6.x) since `svelte-check` doesn't support TypeScript 7 yet.
+- AI-docs generator runs identically on Node.js and Bun (no TypeScript loader required).
+- Docs now link the GitHub repository and the author website.
+
 ### [1.0.4] - 2026-08-17
 
 #### Changed
@@ -213,6 +236,15 @@ Library source lives in `src/lib`. The showcase app lives in `src/routes`.
 - Prevented edge-case positioning from producing negative coordinates on very small viewports.
 
 See the complete history in [CHANGELOG.md](CHANGELOG.md).
+
+---
+
+## Links
+
+- GitHub repository: [github.com/GABRYCA/svelte-tooltip-gca](https://github.com/GABRYCA/svelte-tooltip-gca)
+- Author: [AnonymousGCA](https://anonymousgca.eu)
+- Demo and Docs: [GitHub Pages](https://gabryca.github.io/svelte-tooltip-gca/)
+- NPM package: [npmjs.com/package/svelte-tooltip-gca](https://www.npmjs.com/package/svelte-tooltip-gca)
 
 ---
 

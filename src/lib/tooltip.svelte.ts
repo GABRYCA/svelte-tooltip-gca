@@ -38,20 +38,75 @@ function resolveParams(params: TooltipParams | undefined | null): ResolvedToolti
 	return { ...DEFAULTS, ...params, content: params.content ?? '' };
 }
 
+function isTouchPointer(type: string): boolean {
+	return type === 'touch';
+}
+
 function isTouchLikePointer(type: string): boolean {
 	return type === 'touch' || type === 'pen';
 }
 
-/** Feature-detect the Popover API once. */
-const supportsPopover =
-	typeof HTMLElement !== 'undefined' &&
-	typeof HTMLElement.prototype.showPopover === 'function';
+/** Lazy Popover API detection (SSR / Bun safe, no module-eval caching). */
+function supportsPopover(): boolean {
+	return (
+		typeof HTMLElement !== 'undefined' &&
+		typeof (HTMLElement.prototype as unknown as Record<string, unknown>).showPopover ===
+			'function'
+	);
+}
+
+let tooltipIdCounter = 0;
+
+function nextTooltipId(): string {
+	tooltipIdCounter += 1;
+	try {
+		const uuid =
+			typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+				? crypto.randomUUID().slice(0, 8)
+				: null;
+		if (uuid) return `svelte-tooltip-gca-${Date.now().toString(36)}-${uuid}`;
+	} catch {
+		// ignore — fall back to counter
+	}
+	return `svelte-tooltip-gca-${Date.now().toString(36)}-${tooltipIdCounter.toString(36)}${Math.random()
+		.toString(36)
+		.slice(2, 6)}`;
+}
+
+function prefersReducedMotion(): boolean {
+	return (
+		typeof window !== 'undefined' &&
+		typeof window.matchMedia === 'function' &&
+		window.matchMedia('(prefers-reduced-motion: reduce)').matches
+	);
+}
+
+function isPureTouchDevice(): boolean {
+	if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+	try {
+		return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+	} catch {
+		return false;
+	}
+}
 
 /* ------------------------------------------------------------------ */
 /*  Action                                                             */
 /* ------------------------------------------------------------------ */
 
 export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, params) => {
+	// SSR / non-DOM runtimes (Bun tests, prerender): no-op action, still reactive-safe.
+	if (typeof document === 'undefined' || typeof window === 'undefined') {
+		return {
+			update() {
+				// noop on the server — actions only hydrate in the browser
+			},
+			destroy() {
+				// noop
+			}
+		};
+	}
+
 	let options = $state(resolveParams(params));
 	let destroyed = false;
 
@@ -63,6 +118,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	let hideTimer: ReturnType<typeof setTimeout> | null = null;
 	let touchHideTimer: ReturnType<typeof setTimeout> | null = null;
 	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+	let removeTimer: ReturnType<typeof setTimeout> | null = null;
 	let isTouch = false;
 	let touchOpened = false;
 	let ignoreMouseUntil = 0;
@@ -99,6 +155,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
 		if (touchHideTimer) { clearTimeout(touchHideTimer); touchHideTimer = null; }
 		if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+		if (removeTimer) { clearTimeout(removeTimer); removeTimer = null; }
 	}
 
 	/* ---- DOM creation / destruction ---------------------------------- */
@@ -113,10 +170,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		tooltipEl.setAttribute('role', 'tooltip');
 		tooltipEl.setAttribute('data-show', 'false');
 		tooltipEl.setAttribute('aria-hidden', 'true');
-		tooltipEl.id = `svelte-tooltip-gca-${Math.random().toString(36).slice(2, 10)}`;
+		tooltipEl.id = nextTooltipId();
 
 		// Popover API → renders in the top-layer (above all stacking contexts)
-		if (supportsPopover) {
+		if (supportsPopover()) {
 			tooltipEl.setAttribute('popover', 'manual');
 		}
 
@@ -132,6 +189,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		tooltipEl.appendChild(contentEl);
 
 		document.body.appendChild(tooltipEl);
+
+		if (resizeObserver && tooltipEl) {
+			try { resizeObserver.observe(tooltipEl); } catch { /* noop */ }
+		}
 
 		// a11y link
 		const describedBy = node.getAttribute('aria-describedby');
@@ -150,6 +211,8 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	function destroyTooltipEl() {
 		if (!tooltipEl) return;
 
+		try { resizeObserver?.unobserve(tooltipEl); } catch { /* noop */ }
+
 		const id = tooltipEl.id;
 		const describedBy = node.getAttribute('aria-describedby');
 		if (describedBy) {
@@ -159,7 +222,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		}
 
 		// Close the popover before removing from DOM
-		if (supportsPopover && tooltipEl.matches(':popover-open')) {
+		if (supportsPopover() && tooltipEl.matches(':popover-open')) {
 			try { tooltipEl.hidePopover(); } catch { /* noop */ }
 		}
 
@@ -171,14 +234,14 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	/* ---- popover show / hide helpers --------------------------------- */
 
 	function openPopover() {
-		if (!tooltipEl || !supportsPopover) return;
+		if (!tooltipEl || !supportsPopover()) return;
 		if (!tooltipEl.matches(':popover-open')) {
 			try { tooltipEl.showPopover(); } catch { /* already open */ }
 		}
 	}
 
 	function closePopover() {
-		if (!tooltipEl || !supportsPopover) return;
+		if (!tooltipEl || !supportsPopover()) return;
 		if (tooltipEl.matches(':popover-open')) {
 			try { tooltipEl.hidePopover(); } catch { /* already closed */ }
 		}
@@ -348,16 +411,17 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			options.onHide?.();
 
 			const remove = () => {
+				removeTimer = null;
 				if (tooltipEl && tooltipEl.getAttribute('data-show') === 'false') {
 					closePopover();
 					destroyTooltipEl();
 				}
 			};
 
-			if (!options.animation || options.animationDuration <= 0 || immediate) {
+			if (!options.animation || options.animationDuration <= 0 || immediate || prefersReducedMotion()) {
 				remove();
 			} else {
-				setTimeout(remove, options.animationDuration + 20);
+				removeTimer = setTimeout(remove, options.animationDuration + 20);
 			}
 		};
 
@@ -389,7 +453,8 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	/* ---- event handlers ---------------------------------------------- */
 
 	function onPointerEnter(e: PointerEvent) {
-		if (isTouchLikePointer(e.pointerType)) { markTouch(); return; }
+		// Pen hover behaves like a mouse; only true touch skips hover.
+		if (isTouchPointer(e.pointerType)) { markTouch(); return; }
 		if (Date.now() < ignoreMouseUntil) return;
 		if (touchOpened) return;
 		isTouch = false;
@@ -406,39 +471,48 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		hide();
 	}
 
-	function onFocus() {
+	function onFocusIn(e: FocusEvent) {
 		if (!options.showOnFocus) return;
-		if (isTouch || Date.now() < ignoreMouseUntil) return;
+		// Suppress the synthetic focus that follows a touch, but don't latch
+		// forever — keyboard focus must keep working afterwards.
+		if (Date.now() < ignoreMouseUntil) return;
 		if (touchOpened) return;
+		if (e.relatedTarget && node.contains(e.relatedTarget as Node)) return;
 		show();
 	}
 
-	function onBlur() {
+	function onFocusOut(e: FocusEvent) {
 		if (!options.showOnFocus) return;
-		if (isTouch || Date.now() < ignoreMouseUntil) return;
+		if (Date.now() < ignoreMouseUntil) return;
 		if (touchOpened) return;
+		if (e.relatedTarget && node.contains(e.relatedTarget as Node)) return;
 		hide();
 	}
 
 	function onPointerDown(e: PointerEvent) {
-		if (!isTouchLikePointer(e.pointerType)) return;
+		if (!isTouchPointer(e.pointerType)) return;
 		markTouch();
 		tapHandledByPointer = false;
 		if (options.touchBehavior === 'longpress') {
 			longPressActive = true;
 			longPressStartX = e.clientX;
 			longPressStartY = e.clientY;
+			const duration =
+				Number.isFinite(options.longPressDuration) && options.longPressDuration >= 0
+					? options.longPressDuration
+					: 400;
 			longPressTimer = setTimeout(() => {
 				longPressActive = false;
+				tapHandledByPointer = true;
 				show(true);
 				touchOpened = true;
 				scheduleTouchHide();
-			}, options.longPressDuration);
+			}, duration);
 		}
 	}
 
 	function onPointerMove(e: PointerEvent) {
-		if (!isTouchLikePointer(e.pointerType)) return;
+		if (!isTouchPointer(e.pointerType)) return;
 		if (!longPressActive) return;
 		const dx = Math.abs(e.clientX - longPressStartX);
 		const dy = Math.abs(e.clientY - longPressStartY);
@@ -451,7 +525,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	}
 
 	function onPointerUp(e: PointerEvent) {
-		if (!isTouchLikePointer(e.pointerType)) return;
+		if (!isTouchPointer(e.pointerType)) return;
 		markTouch();
 		cancelLongPress();
 		if (options.touchBehavior === 'tap') {
@@ -464,16 +538,24 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		cancelLongPress();
 	}
 
-	function onClick(_e: MouseEvent) {
+	function onClick(e: MouseEvent) {
 		if (tapHandledByPointer) { tapHandledByPointer = false; return; }
+		// Keyboard-activated clicks (Enter/Space) carry detail === 0;
+		// focus handlers own those — don't toggle or dismiss here.
+		if (e.detail === 0) return;
 		if (Date.now() < ignoreMouseUntil) return;
 
-		const coarse =
-			typeof window !== 'undefined' &&
-			Boolean(window.matchMedia?.('(hover: none), (pointer: coarse)').matches);
-
-		if (options.touchBehavior === 'tap' && (coarse || isTouch)) { toggleTap(); return; }
+		if (options.touchBehavior === 'tap' && (isTouch || isPureTouchDevice())) {
+			toggleTap();
+			return;
+		}
 		if (visible) hide(true);
+	}
+
+	function onContextMenu(e: Event) {
+		// A long-press otherwise summons the OS context menu / text selection
+		// alongside the tooltip on mobile.
+		if (longPressActive || (touchOpened && visible)) e.preventDefault();
 	}
 
 	function onDocumentPointerDown(e: Event) {
@@ -483,12 +565,14 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		hide(true);
 	}
 
-	function onScrollOrResize() {
+	function onScrollOrResize(e: Event) {
 		if (!visible) return;
+		// Inner content scroll (overflow-y: auto) must not reposition.
+		if (tooltipEl && e.target instanceof Node && tooltipEl.contains(e.target)) return;
 		if (rafId !== null) return;
 		rafId = requestAnimationFrame(() => {
 			rafId = null;
-			positionTooltip();
+			if (visible) positionTooltip();
 		});
 	}
 
@@ -497,11 +581,17 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		if (visible) hide(true);
 	}
 
+	let themeRaf: number | null = null;
+
 	function onThemeChange() {
-		if (visible && tooltipEl) {
-			applyContentAndTheme();
-			positionTooltip();
-		}
+		if (themeRaf !== null) return;
+		themeRaf = requestAnimationFrame(() => {
+			themeRaf = null;
+			if (visible && tooltipEl) {
+				applyContentAndTheme();
+				positionTooltip();
+			}
+		});
 	}
 
 	/* ---- attach listeners -------------------------------------------- */
@@ -512,9 +602,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	node.addEventListener('pointermove', onPointerMove);
 	node.addEventListener('pointerup', onPointerUp);
 	node.addEventListener('pointercancel', onPointerCancel);
-	node.addEventListener('focus', onFocus);
-	node.addEventListener('blur', onBlur);
+	node.addEventListener('focusin', onFocusIn);
+	node.addEventListener('focusout', onFocusOut);
 	node.addEventListener('click', onClick);
+	node.addEventListener('contextmenu', onContextMenu);
 
 	document.addEventListener('pointerdown', onDocumentPointerDown, true);
 	window.addEventListener('scroll', onScrollOrResize, true);
@@ -557,6 +648,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			clearTimers();
 			cancelLongPress();
 			if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+			if (themeRaf !== null) { cancelAnimationFrame(themeRaf); themeRaf = null; }
 			hide(true);
 			destroyTooltipEl();
 
@@ -566,9 +658,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			node.removeEventListener('pointermove', onPointerMove);
 			node.removeEventListener('pointerup', onPointerUp);
 			node.removeEventListener('pointercancel', onPointerCancel);
-			node.removeEventListener('focus', onFocus);
-			node.removeEventListener('blur', onBlur);
+			node.removeEventListener('focusin', onFocusIn);
+			node.removeEventListener('focusout', onFocusOut);
 			node.removeEventListener('click', onClick);
+			node.removeEventListener('contextmenu', onContextMenu);
 
 			document.removeEventListener('pointerdown', onDocumentPointerDown, true);
 			window.removeEventListener('scroll', onScrollOrResize, true);

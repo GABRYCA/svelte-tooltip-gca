@@ -3,15 +3,18 @@
  * from a single source of truth so they never drift from the docs site:
  *
  *   - version / name / description / homepage  → read from package.json
- *   - title / description / FAQ                → imported from src/routes/seo.ts
- *     (the same module that feeds the visible FAQ and JSON-LD on the site)
+ *   - description / siteUrl / FAQ               → parsed from src/routes/seo.ts
+ *     (the same module that feeds the visible FAQ and JSON-LD on the site;
+ *     parsed as text so this script runs identically on Node.js and Bun
+ *     without requiring a TypeScript loader)
  *   - install / quick start / API tables       → maintained here (mirrors README.md)
  *
  * Run automatically as part of `npm run build` (or manually: npm run generate:ai-docs).
+ * Compatible with Node.js >= 18 and Bun >= 1.0 (uses only node:fs / node:url / node:path).
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,9 +23,36 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 
 const pkg = JSON.parse(readFileSync(path.join(projectRoot, 'package.json'), 'utf8'));
 
-const { faqItems, description, siteUrl } = await import(
-	pathToFileURL(path.join(projectRoot, 'src', 'routes', 'seo.ts')).href
-);
+/**
+ * Parse seo.ts as text (no TS import) for maximum runtime compatibility:
+ * works on plain Node, npm, npx, Bun and Bunx without extra loaders.
+ */
+function parseSeoTs() {
+	const src = readFileSync(path.join(projectRoot, 'src', 'routes', 'seo.ts'), 'utf8');
+	const pick = (re, fallback = '') => {
+		const m = src.match(re);
+		return m?.[1] ?? fallback;
+	};
+	const siteUrl = pick(/export const siteUrl\s*=\s*['"]([^'"]+)['"]/, pkg.homepage ?? '');
+	const description = pick(
+		/export const description\s*=\s*'([\s\S]*?)';/,
+		pkg.description ?? ''
+	);
+	const faqItems = [];
+	const faqBlock = src.match(/export const faqItems[^=]*=\s*\[([\s\S]*?)\];/);
+	const stripQuotes = (s) => s.slice(1, -1);
+	if (faqBlock) {
+		const re =
+			/question\s*:\s*('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")\s*,\s*answer\s*:\s*('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")/g;
+		let m;
+		while ((m = re.exec(faqBlock[1]))) {
+			faqItems.push({ question: stripQuotes(m[1]).trim(), answer: stripQuotes(m[2]).trim() });
+		}
+	}
+	return { siteUrl, description, faqItems };
+}
+
+const { faqItems, description, siteUrl } = parseSeoTs();
 
 const name = pkg.name;
 const version = pkg.version;
@@ -216,6 +246,13 @@ import type {
 ## FAQ
 
 ${faqMarkdown}
+
+## Links
+
+- Docs & Demo: ${homepage}
+- GitHub repository: ${repo}
+- npm package: ${npmUrl}
+- Author: ${pkg.author?.name ?? 'GABRYCA'} (${pkg.author?.url ?? 'https://anonymousgca.eu'})
 
 ## License
 

@@ -93,11 +93,22 @@ export function detectDarkMode(): boolean {
 		// ignore
 	}
 
-	return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+	if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+		try {
+			return window.matchMedia('(prefers-color-scheme: dark)').matches ?? false;
+		} catch {
+			return false;
+		}
+	}
+	return false;
 }
 
 /**
  * Resolve a theme mode or partial custom theme into a complete theme object.
+ *
+ * Note: `lightTheme` is a dark panel designed for light pages (and vice
+ * versa) so the tooltip contrasts its surroundings. Explicit `undefined`
+ * values in a custom theme are ignored to preserve the base theme.
  */
 export function resolveTheme(theme: TooltipThemeMode | TooltipTheme): Required<TooltipTheme> {
 	if (theme === 'light') return { ...lightTheme };
@@ -108,16 +119,18 @@ export function resolveTheme(theme: TooltipThemeMode | TooltipTheme): Required<T
 	}
 
 	const base = detectDarkMode() ? darkTheme : lightTheme;
-	return {
-		...base,
-		...theme,
-		arrowSize:
-			theme.arrowSize !== undefined
-				? typeof theme.arrowSize === 'number'
-					? `${theme.arrowSize}px`
-					: theme.arrowSize
-				: base.arrowSize
-	};
+	const overrides: TooltipTheme = {};
+	for (const [key, value] of Object.entries(theme)) {
+		if (value !== undefined) (overrides as Record<string, unknown>)[key] = value;
+	}
+	const merged = { ...base, ...overrides };
+	if (typeof merged.arrowSize === 'number') merged.arrowSize = `${merged.arrowSize}px`;
+	if (typeof merged.maxWidth === 'number') {
+		merged.maxWidth = `${merged.maxWidth}px` as unknown as string;
+	} else if (merged.maxWidth !== undefined) {
+		merged.maxWidth = String(merged.maxWidth);
+	}
+	return merged;
 }
 
 /**
@@ -136,7 +149,10 @@ export function applyThemeVars(el: HTMLElement, theme: Required<TooltipTheme>): 
 	el.style.setProperty('--stt-font-family', theme.fontFamily);
 	el.style.setProperty('--stt-font-weight', theme.fontWeight);
 	el.style.setProperty('--stt-padding', theme.padding);
-	el.style.setProperty('--stt-max-width', theme.maxWidth);
+	el.style.setProperty(
+		'--stt-max-width',
+		typeof theme.maxWidth === 'number' ? `${theme.maxWidth}px` : String(theme.maxWidth)
+	);
 	el.style.setProperty('--stt-arrow-size', arrow);
 	el.style.setProperty('--stt-z-index', String(theme.zIndex));
 }
