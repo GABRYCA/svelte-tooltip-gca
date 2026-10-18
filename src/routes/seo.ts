@@ -8,10 +8,10 @@ export const ogImageUrl = `${siteUrl}og-image.png`;
 
 export const title = 'svelte-tooltip-gca — Tooltips for Svelte 5 (Docs & Demo)';
 
-export const version = '1.0.5';
+export const version = '1.1.0';
 
 export const description =
-	'Modern, theme-aware tooltip action (use:tooltip) for Svelte 5: automatic light/dark themes, mobile touch support, top-layer Popover API rendering and zero dependencies. Docs, quick start, API reference and live playground.';
+	'Modern, theme-aware tooltip action (use:tooltip) for Svelte 5: automatic light/dark themes, mobile touch support, top-layer Popover API rendering, native CSS anchor positioning with a JS fallback engine, and zero dependencies. Docs, quick start, API reference and live playground.';
 
 export interface FaqItem {
 	question: string;
@@ -55,6 +55,11 @@ export const faqItems: FaqItem[] = [
 			"Tooltips render in the browser's top layer using the native Popover API, so they are never clipped by overflow: hidden containers and are immune to z-index conflicts."
 	},
 	{
+		question: 'Does it use CSS anchor positioning?',
+		answer:
+			"Yes. When the browser supports CSS anchor positioning (Baseline 2026: Chrome/Edge 125+, Firefox 145+, Safari 27+), the target and panel are tied together natively with anchor-name/position-anchor and the browser handles placement, viewport overflow and scroll tracking via position-area and position-try-fallbacks, with no JavaScript at all during scroll. Older browsers automatically fall back to the built-in JS positioning engine. No configuration is required and the public API is unchanged."
+	},
+	{
 		question: 'Does svelte-tooltip-gca have any dependencies?',
 		answer: 'No runtime dependencies. The only peer dependency is Svelte 5 (^5.0.0).'
 	}
@@ -88,7 +93,7 @@ export const softwareSchema = JSON.stringify({
 	programmingLanguage: 'JavaScript',
 	softwareRequirements: 'Svelte ^5.0.0',
 	featureList:
-		'Auto light/dark theme, mobile touch support, Popover API top-layer, keyboard accessible, zero dependencies'
+		'Auto light/dark theme, mobile touch support, Popover API top-layer, CSS anchor positioning with JS engine fallback, keyboard accessible, zero dependencies'
 });
 
 export const faqSchema = JSON.stringify({

@@ -128,12 +128,13 @@ This file contains the full documentation for the \`${name}\` package (v${versio
 
 Key features:
 
-- Single Svelte 5 action (\`use:tooltip\`) — no wrapper components required
+- Single Svelte 5 action (\`use:tooltip\`), no wrapper components required
 - Auto light and dark theme detection
 - Custom themes via a plain object
 - Desktop and mobile friendly (hover, focus, tap, long-press)
 - Keyboard friendly: opens on focus, dismisses with \`Escape\`
-- Top-layer rendering via the native Popover API — never clipped, immune to z-index wars
+- Top-layer rendering via the native Popover API: never clipped and immune to z-index wars
+- Native CSS anchor positioning (Baseline 2026) with an automatic JS engine fallback for older browsers
 - Smooth enter and leave animation (respects \`prefers-reduced-motion\`)
 - Smart positioning: stays on the preferred side, shifts to fit, arrow re-aims at the target
 
@@ -176,6 +177,20 @@ ${apiOptionsTable}
 By default (\`'shift'\`) the tooltip **stays on its preferred side**, slides along the cross-axis to remain fully visible, and the **arrow re-aims** at the target element even when the panel is off-centre. It only flips to the opposite side when there is no room at all on the primary axis.
 
 Pass \`overflowBehavior: 'flip'\` to restore the legacy strategy (try opposite, then perpendicular sides).
+
+On browsers that support CSS anchor positioning (Baseline 2026: Chrome/Edge 125+, Firefox 145+, Safari 27+) both strategies run natively in the browser via \`position-area\` and \`position-try-fallbacks\`, and scroll tracking costs zero JavaScript. Older browsers automatically use the built-in JS engine described above. See the \`Anchor positioning\` section for details.
+
+## Anchor positioning
+
+From version 1.1.0 the action uses the browser's native CSS anchor positioning whenever it is supported (Baseline 2026: Chrome/Edge 125+, Firefox 145+, Safari 27+). The target element gets an inline \`anchor-name\`, the panel gets the matching \`position-anchor\`, and the browser performs the positioning itself:
+
+- \`position-area\` selects the side named by \`placement\`
+- \`position-try-fallbacks\` implements the \`overflowBehavior\` fallback order (mirror of the JS engine semantics)
+- the gap from \`offset\` becomes a margin on the anchor edge via the internal \`--stt-offset\` variable
+- scroll repositioning is fully native and costs zero JavaScript
+- JavaScript keeps only the arrow aiming: it measures the post-layout result each frame and rewrites \`data-placement\` (arrow side and transform origin) plus the arrow offset
+
+Targets that live inside an open popover and browsers without support automatically fall back to the built-in JS engine. No configuration is required and the public API is unchanged.
 
 ## Theming
 

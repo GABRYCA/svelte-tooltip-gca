@@ -13,7 +13,8 @@ Modern, theme-aware tooltips for **Svelte 5** as a simple action:
 - **Custom themes** via a plain object
 - **Desktop and mobile friendly** (hover, focus, tap, long-press)
 - **Keyboard friendly**: opens on focus, dismisses with `Escape`
-- **Top-layer rendering** via the native Popover API — never clipped, immune to z-index wars
+- **Top-layer rendering** via the native Popover API: never clipped and immune to z-index wars
+- **Native anchoring**: CSS anchor positioning keeps the panel glued to its target natively on modern browsers, with the JS engine as an automatic fallback
 - Smooth **enter and leave animation** (respects `prefers-reduced-motion`)
 - **Smart positioning**: stays on the preferred side, shifts to fit, and the arrow re-aims at the target
 
@@ -74,7 +75,7 @@ Peer dependency: `svelte` ^5.0.0. Zero runtime dependencies. Works on Node.js (n
 | `content` | `string` | — | Tooltip text (required for object form) |
 | `html` | `boolean` | `false` | Render content as HTML (trusted only) |
 | `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | Preferred side |
-| `overflowBehavior` | `'shift' \| 'flip'` | `'shift'` | Viewport-overflow strategy (see below) |
+| `overflowBehavior` | `'shift' \| 'flip'` | `'shift'` | Viewport-overflow strategy (see below); native on anchor-positioning browsers |
 | `theme` | `'auto' \| 'light' \| 'dark' \| TooltipTheme` | `'auto'` | Theme mode or custom object |
 | `offset` | `number` | `8` | Gap from target (px) |
 | `delay` | `number` | `120` | Show delay (ms) |
@@ -112,6 +113,27 @@ perpendicular sides):
   Legacy flip
 </button>
 ```
+
+---
+
+## Native anchor positioning
+
+From version 1.1.0 the action uses the browser's **CSS anchor positioning** module
+whenever it is supported (Baseline 2026: Chrome/Edge 125+, Firefox 145+, Safari 27+).
+The target element receives an inline `anchor-name`, the panel gets the matching
+`position-anchor`, and the browser performs the positioning by itself:
+
+- `position-area` selects the side named by `placement`
+- `position-try-fallbacks` implements the `overflowBehavior` fallback order, mirroring the JS engine semantics
+- the `offset` gap becomes a margin on the anchor edge (internal `--stt-offset` variable)
+- scroll repositioning is fully native, so scrolling costs zero JavaScript
+- JavaScript keeps the arrow aiming: it measures the post-layout result each frame to re-aim the arrow and to rewrite `data-placement` (arrow side and transform origin) when the browser chosen fallback shifts the panel
+
+Targets that live inside an open popover, and older browsers, automatically fall
+back to the built-in JS engine. Panels whose native layout degenerates (for
+example targets in a sticky or transformed ancestor) also switch back to the JS
+engine at runtime. No configuration and no new options are required; the public
+API is unchanged.
 
 ---
 
@@ -209,6 +231,19 @@ Library source lives in `src/lib`. The showcase app lives in `src/routes`.
 ---
 
 ## Release Notes
+
+### [1.1.0] - 2026-10-18
+
+#### Added
+
+- Native CSS anchor positioning as a progressive enhancement. On Baseline 2026 browsers (Chrome/Edge 125+, Firefox 145+, Safari 27+) the target and panel are tied together with inline `anchor-name` / `position-anchor`, the browser performs the placement through per-placement `position-area` rules and implements `overflowBehavior` with `position-try-fallbacks`, and scroll repositioning is fully native with zero JavaScript.
+- The action measures the post-layout result each frame to keep the arrow aimed at the target and to correct `data-placement` (arrow side and transform origin) whenever the browser picks a fallback. Targets inside an open popover, and unsupported browsers, automatically keep using the built-in JS engine. The public API is unchanged.
+
+#### Changed
+
+- Upgraded the showcase to SvelteKit 3: the config moved from `svelte.config.js` (removed) into the `sveltekit({...})` plugin options of `vite.config.ts`, `$lib` subpath imports moved to `#lib` through the package `imports` field, and `tsconfig.json` now extends `$app/tsconfig`.
+- Upgraded dev dependencies (`@sveltejs/kit` 3.1.0, `@sveltejs/adapter-static` 4.0.0, `@sveltejs/adapter-auto` 8.0.0, `@sveltejs/package` 3.0.1, `@sveltejs/vite-plugin-svelte` 7.3.1, `svelte` 5.57.2, `vite` 8.3.4, `svelte-check` 4.7.7, `publint` 0.3.25). TypeScript stays on 6.0.3 (latest 6.x) since `svelte-check` and `svelte-package` don't support TypeScript 7 yet.
+- Docs, AI docs (`llms.txt` / `llms-full.txt`) and structured data (FAQ, `featureList`) now cover the native anchor positioning behavior.
 
 ### [1.0.5] - 2026-09-17
 

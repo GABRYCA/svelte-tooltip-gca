@@ -1,6 +1,11 @@
 import type { Action } from 'svelte/action';
 import { applyThemeVars, resolveTheme } from './themes.js';
-import { computePosition } from './position.js';
+import {
+	aimArrow,
+	anchorPositioningSupported,
+	computePosition,
+	derivePlacement
+} from './position.js';
 import { ensureStyles } from './styles.js';
 import type {
 	ResolvedTooltipOptions,
@@ -90,6 +95,12 @@ function isPureTouchDevice(): boolean {
 	}
 }
 
+/**
+ * Extra edge distance tolerated between the panel and its target before the
+ * panel counts as dislocated (which hands the instance over to the JS engine).
+ */
+const ANCHOR_GAP_SLACK = 24;
+
 /* ------------------------------------------------------------------ */
 /*  Action                                                             */
 /* ------------------------------------------------------------------ */
@@ -131,6 +142,19 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 	let longPressStartX = 0;
 	let longPressStartY = 0;
 
+	/**
+	 * Native CSS anchor positioning mode: when the browser supports the
+	 * anchor-positioning module alongside the Popover API, the panel is glued
+	 * to the target by the browser itself (`position-anchor` + `position-area`
+	 * + `position-try-fallbacks`) and the JS position engine only computes the
+	 * arrow offset. Scroll repositioning then costs zero JavaScript.
+	 */
+	const anchorMode = supportsPopover() && anchorPositioningSupported();
+	/** Per-instance: anchor mode with an in-flow target (anchors cannot reach
+	 * into an open popover from below the top layer). */
+	let anchorActive = false;
+	let anchorSyncRaf: number | null = null;
+
 	$effect(() => {
 		const opts = options;
 
@@ -144,7 +168,14 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 
 		if (visible && tooltipEl) {
 			applyContentAndTheme();
-			positionTooltip();
+			if (anchorActive) {
+				// The position-area stylesheet rules key off data-placement; the
+				// follow-up sync measurement corrects it to the side CSS chose.
+				tooltipEl.setAttribute('data-placement', opts.placement);
+				scheduleAnchorSync();
+			} else {
+				positionTooltip();
+			}
 		}
 	});
 
@@ -172,6 +203,10 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		tooltipEl.setAttribute('aria-hidden', 'true');
 		tooltipEl.id = nextTooltipId();
 
+		// Initial side hint (corrected by measurement afterwards).
+		tooltipEl.setAttribute('data-placement', options.placement);
+		tooltipEl.setAttribute('data-overflow', options.overflowBehavior);
+
 		// Popover API → renders in the top-layer (above all stacking contexts)
 		if (supportsPopover()) {
 			tooltipEl.setAttribute('popover', 'manual');
@@ -190,6 +225,16 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 
 		document.body.appendChild(tooltipEl);
 
+		if (anchorMode && !node.closest(':popover-open')) {
+			// Tie panel and target together natively. An element already running
+			// inside an open popover cannot serve as a DOM anchor for an element
+			// below it in the top layer — those targets keep the JS engine.
+			anchorActive = true;
+			tooltipEl.setAttribute('data-anchor', 'true');
+			tooltipEl.style.setProperty('position-anchor', `--${tooltipEl.id}`);
+			node.style.setProperty('anchor-name', `--${tooltipEl.id}`);
+		}
+
 		if (resizeObserver && tooltipEl) {
 			try { resizeObserver.observe(tooltipEl); } catch { /* noop */ }
 		}
@@ -205,7 +250,6 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		}
 
 		applyContentAndTheme();
-		positionTooltip();
 	}
 
 	function destroyTooltipEl() {
@@ -214,6 +258,12 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		try { resizeObserver?.unobserve(tooltipEl); } catch { /* noop */ }
 
 		const id = tooltipEl.id;
+
+		// Detach the native anchor tie-up when it was set.
+		if (node.style.getPropertyValue('anchor-name') === `--${id}`) {
+			node.style.removeProperty('anchor-name');
+		}
+
 		const describedBy = node.getAttribute('aria-describedby');
 		if (describedBy) {
 			const next = describedBy.split(/\s+/).filter((x) => x && x !== id).join(' ');
@@ -268,6 +318,14 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		}
 		applyThemeVars(tooltipEl, theme);
 
+		if (anchorActive) {
+			// The gap from the target is expressed as a margin next to the anchor
+			// edge (position-area positioning), not as an inset offset.
+			const offset = Number.isFinite(options.offset) ? options.offset : 8;
+			tooltipEl.style.setProperty('--stt-offset', `${offset}px`);
+			tooltipEl.setAttribute('data-overflow', options.overflowBehavior);
+		}
+
 		tooltipEl.style.setProperty('--stt-duration', `${options.animationDuration}ms`);
 		tooltipEl.setAttribute('data-animation', options.animation ? 'true' : 'false');
 
@@ -292,8 +350,66 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 
 	/* ---- positioning ------------------------------------------------- */
 
+	/**
+	 * CSS anchor-positioning mode: the browser owns the panel position
+	 * (`position-area` + `position-try-fallbacks`). JS only measures the
+	 * post-layout result once per frame to keep `data-placement` (arrow side +
+	 * transform-origin) and the arrow offset pointing at the target.
+	 */
+	function syncAnchorPosition() {
+		anchorSyncRaf = null;
+		if (!anchorActive || !visible || !tooltipEl) return;
+
+		const targetRect = node.getBoundingClientRect();
+		const tipRect = tooltipEl.getBoundingClientRect();
+		if (!tipRect.width || !tipRect.height) return;
+
+		const measured = derivePlacement(targetRect, tipRect);
+		const offset = Number.isFinite(options.offset) ? (options.offset as number) : 8;
+
+		if (measured === null || measured.gap > offset + ANCHOR_GAP_SLACK) {
+			// Overlapping / degenerate / far-flung layout: the browser's anchor
+			// positioning produced nothing usable here (e.g. a sticky or transformed
+			// ancestor shrinks the position-area region below the panel size) — hand
+			// this instance over to the JS engine.
+			disableAnchorMode();
+			positionTooltip();
+			return;
+		}
+
+		if (tooltipEl.getAttribute('data-placement') !== measured.placement) {
+			tooltipEl.setAttribute('data-placement', measured.placement);
+		}
+		applyArrowOffset(
+			measured.placement,
+			aimArrow(targetRect, tipRect, tipRect, measured.placement)
+		);
+	}
+
+	/** Give up on native anchoring for this instance and restore JS positioning. */
+	function disableAnchorMode() {
+		if (!anchorActive) return;
+		anchorActive = false;
+		if (!tooltipEl) return;
+		tooltipEl.removeAttribute('data-anchor');
+		tooltipEl.style.removeProperty('position-anchor');
+		const id = tooltipEl.id;
+		if (node.style.getPropertyValue('anchor-name') === `--${id}`) {
+			node.style.removeProperty('anchor-name');
+		}
+	}
+
+	function scheduleAnchorSync() {
+		if (anchorSyncRaf !== null) cancelAnimationFrame(anchorSyncRaf);
+		anchorSyncRaf = requestAnimationFrame(syncAnchorPosition);
+	}
+
 	function positionTooltip() {
 		if (!tooltipEl) return;
+		if (anchorActive) {
+			scheduleAnchorSync();
+			return;
+		}
 
 		const targetRect = node.getBoundingClientRect();
 		const tipWidth = tooltipEl.offsetWidth;
@@ -386,7 +502,9 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			options.onShow?.();
 
 			requestAnimationFrame(() => {
-				if (visible) positionTooltip();
+				if (!visible) return;
+				if (anchorActive) syncAnchorPosition();
+				else positionTooltip();
 			});
 		};
 
@@ -569,6 +687,13 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 		if (!visible) return;
 		// Inner content scroll (overflow-y: auto) must not reposition.
 		if (tooltipEl && e.target instanceof Node && tooltipEl.contains(e.target)) return;
+		if (anchorActive) {
+			// Scroll keeps the panel glued to the anchor natively; only viewport
+			// resizes can change the layout enough to warrant re-measuring.
+			if (e.type !== 'resize') return;
+			scheduleAnchorSync();
+			return;
+		}
 		if (rafId !== null) return;
 		rafId = requestAnimationFrame(() => {
 			rafId = null;
@@ -648,6 +773,7 @@ export const tooltip: Action<HTMLElement, TooltipParams | undefined> = (node, pa
 			clearTimers();
 			cancelLongPress();
 			if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+			if (anchorSyncRaf !== null) { cancelAnimationFrame(anchorSyncRaf); anchorSyncRaf = null; }
 			if (themeRaf !== null) { cancelAnimationFrame(themeRaf); themeRaf = null; }
 			hide(true);
 			destroyTooltipEl();

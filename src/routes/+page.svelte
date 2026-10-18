@@ -1,7 +1,7 @@
 <script lang="ts">
     import {resolve} from "$app/paths";
-    import {tooltip} from "$lib/index.js";
-    import type {TooltipTheme, TooltipPlacement} from "$lib/index.js";
+    import {tooltip} from "#lib";
+    import type {TooltipTheme, TooltipPlacement} from "#lib";
     import {faqItems, version} from "./seo.js";
 
     type ThemeMode = "auto" | "light" | "dark";
@@ -348,7 +348,8 @@ import type {
                     <p class="lede">
                         A small, dependency-free <code>use:tooltip</code> action for Svelte 5.
                         It handles themes, touch, keyboard focus, animation, and viewport-aware
-                        positioning for you.
+                        positioning for you, anchoring the panel natively via CSS anchor
+                        positioning on modern browsers.
                     </p>
 
                     <div class="install-pill-wrap">
@@ -393,6 +394,11 @@ import type {
                         <div class="stat-item">
                             <span class="stat-val">0 deps</span>
                             <span class="stat-lbl">Runtime lean</span>
+                        </div>
+                        <div class="stat-divider"></div>
+                        <div class="stat-item">
+                            <span class="stat-val">CSS anchor</span>
+                            <span class="stat-lbl">Native positioning</span>
                         </div>
                     </div>
                 </div>
@@ -646,10 +652,10 @@ import type {
 
         <section id="examples" class="section">
             <h2>Live examples</h2>
-            <p class="section-intro">
+            <!--<p class="section-intro">
                 Hover on desktop or tap on mobile. Tooltips flip when space is
                 tight and stay above other content.
-            </p>
+            </p>-->
 
             <div class="grid">
                 <article class="card demo-card">
@@ -941,6 +947,8 @@ import type {
                         Rendered via the native <code>popover</code> API in the
                         browser's <em>top-layer</em> — immune to
                         <code>overflow: hidden</code> and stacking context issues.
+                        Scroll tracking is native too, via CSS anchor positioning
+                        where supported.
                     </p>
                     <div class="clip-box">
                         <button
@@ -960,10 +968,10 @@ import type {
 
         <section id="theming" class="section">
             <h2>Theming</h2>
-            <p class="section-intro">
+            <!--<p class="section-intro">
                 By default tooltips use <code>theme: 'auto'</code>. Detection
                 order: page <code>data-theme</code> / <code>.dark</code> class → CSS <code>color-scheme</code> → <code>prefers-color-scheme</code>.
-            </p>
+            </p>-->
 
             <div class="card">
                 <h3>Custom theme object</h3>
@@ -1189,7 +1197,7 @@ import type {
                             <td><code>'shift' | 'flip'</code></td>
                             <td><code>'shift'</code></td>
                             <td>
-                                <code>'shift'</code> keeps the preferred side, slides the panel, and re-aims the arrow.
+                                <code>'shift'</code> keeps the preferred side, slides the panel, and re-aims the arrow. On anchor-positioning browsers it maps to native <code>position-try-fallbacks</code>.
                             </td>
                         </tr>
                         <tr>
@@ -1225,18 +1233,26 @@ import type {
                 <h3>Behavior notes</h3>
                 <ul class="notes">
                     <li>
-                        <strong>Escape dismisses.</strong> An open tooltip closes when you press <code>Escape</code>.
+                        <strong>Escape dismisses:</strong> An open tooltip closes when you press <code>Escape</code>.
                     </li>
                     <li>
-                        <strong>Reduced motion.</strong> Disables animations automatically when <code>prefers-reduced-motion:
+                        <strong>Reduced motion:</strong> Disables animations automatically when <code>prefers-reduced-motion:
                         reduce</code> is set.
                     </li>
                     <li>
-                        <strong>Long-press cancels on movement.</strong> Cancels opening if a touch turns into a scroll
+                        <strong>Native anchoring:</strong> When the browser supports CSS anchor
+                        positioning (Baseline 2026: Chrome/Edge 125+, Firefox 145+, Safari 27+),
+                        the tooltip is glued to its target by the browser itself
+                        (<code>position-anchor</code> + <code>position-area</code> +
+                        <code>position-try-fallbacks</code>), including during scroll, with zero
+                        JavaScript. Older browsers silently fall back to the JS engine.
+                    </li>
+                    <li>
+                        <strong>Long-press cancels on movement:</strong> Cancels opening if a touch turns into a scroll
                         or drag.
                     </li>
                     <li>
-                        <strong>Live updates.</strong> Parameter reactive updates re-render and reposition tooltips
+                        <strong>Live updates:</strong> Parameter reactive updates re-render and reposition tooltips
                         seamlessly.
                     </li>
                 </ul>
@@ -1244,10 +1260,10 @@ import type {
         </section>
 
         <section id="faq" class="section">
-            <h2>Frequently asked questions</h2>
-            <p class="section-intro">
+            <h2>FAQ</h2>
+            <!--<p class="section-intro">
                 Quick answers about installing, using and theming tooltips in Svelte 5.
-            </p>
+            </p>-->
 
             <div class="faq-list">
                 {#each faqItems as item, index (item.question)}
@@ -1275,7 +1291,7 @@ import type {
         </section>
 
         <section class="section features">
-            <h2>Why svelte-tooltip-gca?</h2>
+            <h2>Highlights:</h2>
             <div class="feature-grid">
                 <div class="feature">
                     <span class="feature-icon">✨</span>
@@ -1310,6 +1326,15 @@ import type {
                     <h3>Top-layer rendering</h3>
                     <p>
                         Uses the native <code>popover</code> API so tooltips live in the browser's top-layer.
+                    </p>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🧭</span>
+                    <h3>Native anchoring</h3>
+                    <p>
+                        On modern browsers CSS anchor positioning keeps the panel on target
+                        natively, so scroll repositioning is free. Older browsers use the JS
+                        engine.
                     </p>
                 </div>
             </div>

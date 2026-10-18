@@ -131,6 +131,73 @@ export function ensureStyles(): void {
 	border-right: none;
 }
 
+/* ---- native CSS anchor positioning (progressive enhancement) ------------
+ * When the browser supports CSS anchor positioning (Baseline 2026: Chrome/Edge
+ * 125+, Firefox 145+, Safari 27+) the action adds data-anchor="true" plus an
+ * inline position-anchor on the panel and an anchor-name on the target, and
+ * the browser keeps the panel glued to the target natively (including during
+ * scroll) with no JS repositioning at all. Older engines simply never match
+ * these rules and keep the JS engine.
+ *
+ * position-area selects the side; the offset gap is a margin on the anchor
+ * edge (--stt-offset). The try fallbacks mirror the JS engine semantics with
+ * plain slot keywords only (span tokens are not accepted as fallback values):
+ * "shift" tries the same side shifted to the inline-start / inline-end
+ * [top left, top right] corner regions, then the opposite side; if no option
+ * avoids overflow the browser applies the last option anyway. "flip" tries
+ * the opposite side first, then the perpendicular ones. A post-layout
+ * measurement then rewrites data-placement to the side CSS actually picked,
+ * and with it the arrow side and transform origin.
+ */
+.svelte-tooltip-gca[data-anchor="true"][data-overflow="shift"][data-placement="top"] {
+	position-area: top;
+	margin-bottom: var(--stt-offset, 8px);
+	position-try-fallbacks: top left, top right, bottom;
+}
+
+.svelte-tooltip-gca[data-anchor="true"][data-overflow="shift"][data-placement="bottom"] {
+	position-area: bottom;
+	margin-top: var(--stt-offset, 8px);
+	position-try-fallbacks: bottom left, bottom right, top;
+}
+
+.svelte-tooltip-gca[data-anchor="true"][data-overflow="shift"][data-placement="left"] {
+	position-area: left;
+	margin-right: var(--stt-offset, 8px);
+	position-try-fallbacks: left top, left bottom, right;
+}
+
+.svelte-tooltip-gca[data-anchor="true"][data-overflow="shift"][data-placement="right"] {
+	position-area: right;
+	margin-left: var(--stt-offset, 8px);
+	position-try-fallbacks: right top, right bottom, left;
+}
+
+/* 'flip' mirrors the legacy engine order: opposite side first, then perpendicular. */
+.svelte-tooltip-gca[data-anchor="true"][data-overflow="flip"][data-placement="top"] {
+	position-area: top;
+	margin-bottom: var(--stt-offset, 8px);
+	position-try-fallbacks: bottom, right, left;
+}
+
+.svelte-tooltip-gca[data-anchor="true"][data-overflow="flip"][data-placement="bottom"] {
+	position-area: bottom;
+	margin-top: var(--stt-offset, 8px);
+	position-try-fallbacks: top, right, left;
+}
+
+.svelte-tooltip-gca[data-anchor="true"][data-overflow="flip"][data-placement="left"] {
+	position-area: left;
+	margin-right: var(--stt-offset, 8px);
+	position-try-fallbacks: right, top, bottom;
+}
+
+.svelte-tooltip-gca[data-anchor="true"][data-overflow="flip"][data-placement="right"] {
+	position-area: right;
+	margin-left: var(--stt-offset, 8px);
+	position-try-fallbacks: left, top, bottom;
+}
+
 /* ---- reduced motion --------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
 	.svelte-tooltip-gca {

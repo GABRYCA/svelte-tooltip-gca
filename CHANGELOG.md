@@ -5,6 +5,23 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-18
+
+### Added
+
+- Native CSS anchor positioning as a progressive enhancement. On Baseline 2026 browsers (Chrome/Edge 125+, Firefox 145+, Safari 27+) the tooltip target receives an inline `anchor-name` and the panel a matching `position-anchor`, so the browser performs the placement by itself.
+- Per-placement `position-area` rules keyed off `data-anchor` / `data-overflow` / `data-placement`; the `offset` gap becomes a margin on the anchor edge (internal `--stt-offset` variable, default `8px`).
+- `position-try-fallbacks` lists mirroring the JS engine semantics: `'shift'` tries the same side shifted toward the inline start / inline end corner regions, then the opposite side; `'flip'` tries the opposite side, then the perpendicular sides. If no option avoids overflow the browser applies the last option anyway.
+- Post-layout measurement keeps the arrow aimed at the target and rewrites `data-placement` (arrow side and transform origin) when the browser picks a fallback. Viewport resizes and content resizes still re-measure.
+- Targets inside an open popover, unsupported browsers, and panels whose native layout degenerates (e.g. a sticky or transformed ancestor shrinks the `position-area` region) automatically keep or switch to the built-in JS positioning engine. The public API is unchanged (no new options).
+- New exported helper `anchorPositioningSupported()` in the internal positioning module.
+
+### Changed
+
+- Upgraded the showcase to SvelteKit 3: the config moved from `svelte.config.js` (removed) into the `sveltekit({...})` plugin options of `vite.config.ts`; `$lib` subpath imports moved to `#lib` through the package `imports` field; `tsconfig.json` now extends `$app/tsconfig`.
+- Upgraded dev dependencies: `@sveltejs/kit` 2.70.3 → 3.1.0, `@sveltejs/vite-plugin-svelte` 7.3.0 → 7.3.1, `vite` 8.3.0 → 8.3.4, `svelte` 5.57.0 → 5.57.2, `svelte-check` 4.7.6 → 4.7.7, `publint` 0.3.24 → 0.3.25, plus `@sveltejs/package` 2.x → 3.0.1, `@sveltejs/adapter-static` 3.x → 4.0.0 and `@sveltejs/adapter-auto` 7.x → 8.0.0. TypeScript stays on the 6.x line (6.0.3, latest) because `svelte-check` and `svelte-package` do not yet support TypeScript 7 (see sveltejs/language-tools issue #3063).
+- Docs, AI docs (`llms.txt` / `llms-full.txt` generator) and structured data (FAQ, JSON-LD `featureList`) cover the native anchor positioning behavior.
+
 ## [1.0.5] - 2026-09-17
 
 ### Fixed
@@ -47,5 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Prevented edge-case positioning from producing negative coordinates on very small viewports.
 
+[1.1.0]: https://github.com/GABRYCA/svelte-tooltip-gca/releases/tag/v1.1.0
 [1.0.5]: https://github.com/GABRYCA/svelte-tooltip-gca/releases/tag/v1.0.5
 [1.0.4]: https://github.com/GABRYCA/svelte-tooltip-gca/releases/tag/v1.0.4

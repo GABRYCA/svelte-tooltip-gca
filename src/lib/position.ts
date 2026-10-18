@@ -22,6 +22,72 @@ const ARROW_EDGE_PADDING = 12;
 /*  Public API                                                         */
 /* ------------------------------------------------------------------ */
 
+let cachedAnchorSupport: boolean | null = null;
+
+/**
+ * Runtime support check for the CSS anchor positioning module
+ * (`anchor-name`, `position-anchor`, `position-area` and
+ * `position-try-fallbacks`). Baseline 2026: Chrome/Edge 125+, Firefox 145+
+ * and Safari 27+. Evaluated once and cached; safe on SSR / Bun / Node.
+ */
+export function anchorPositioningSupported(): boolean {
+	if (cachedAnchorSupport !== null) return cachedAnchorSupport;
+	cachedAnchorSupport = false;
+	try {
+		if (typeof CSS !== 'undefined' && typeof CSS.supports === 'function') {
+			cachedAnchorSupport =
+				CSS.supports('position-area', 'top') &&
+				CSS.supports('anchor-name', '--stt-probe') &&
+				CSS.supports('position-try-fallbacks', 'top, bottom') &&
+				CSS.supports('position-try-fallbacks', 'flip-block');
+		}
+	} catch {
+		cachedAnchorSupport = false;
+	}
+	return cachedAnchorSupport;
+}
+
+/**
+ * Infer which side the tooltip currently sits on from rendered geometry.
+ *
+ * Used in CSS anchor-positioning mode, where the browser may apply a
+ * `position-try-fallbacks` option (corner region or opposite side) without
+ * informing JS. The derived placement drives the arrow side and `transform-origin`
+ * so they stay in sync with whatever position CSS picked, and the returned gap
+ * lets callers detect a dislocated panel. Returns `null` when the two rects
+ * are degenerate (e.g. detached elements or a panel collapsed to zero size) or
+ * when all four side gaps are negative (the panel overlaps the anchor).
+ */
+export function derivePlacement(
+	target: DOMRect,
+	tooltip: DOMRect
+): { placement: TooltipPlacement; gap: number } | null {
+	if (!Number.isFinite(target.top) || !Number.isFinite(tooltip.top)) return null;
+	if (tooltip.width <= 0 || tooltip.height <= 0) return null;
+
+	/** Signed edge distance for each side: ~0 when the tooltip abuts the
+	 * anchor on that side (within margin / epsilon), negative when it overlaps. */
+	const EPS = 1;
+	const candidates: Array<[TooltipPlacement, number]> = [
+		['top', target.top - tooltip.bottom],
+		['bottom', tooltip.top - target.bottom],
+		['left', target.left - tooltip.right],
+		['right', tooltip.left - target.right]
+	];
+
+	let best: TooltipPlacement | null = null;
+	let bestGap = Infinity;
+	for (const [placement, gap] of candidates) {
+		// Gaps beyond epsilon on the negative side mean the panel overlaps the anchor.
+		if (gap >= -EPS && Math.abs(gap) < bestGap) {
+			best = placement;
+			bestGap = Math.abs(gap);
+		}
+	}
+	if (best === null) return null;
+	return { placement: best, gap: bestGap };
+}
+
 export function computePosition(
 	target: DOMRect,
 	tooltip: DOMRect,
@@ -260,8 +326,12 @@ function clampCoordinate(value: number, viewportSize: number, tooltipSize: numbe
 /**
  * Return the px offset from the tooltip's start-edge to the point where the
  * arrow should sit so it aims at the centre of the target.
+ *
+ * Also used in CSS anchor-positioning mode, where JS does not position the
+ * panel itself but still aims the arrow from a post-layout measurement
+ * (pass the measured tooltip rect for both `tooltip` and `pos`).
  */
-function aimArrow(
+export function aimArrow(
 	target: DOMRect,
 	tooltip: DOMRect,
 	pos: { top: number; left: number },
