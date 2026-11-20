@@ -3,6 +3,7 @@
     import {tooltip} from "#lib";
     import type {TooltipTheme, TooltipPlacement} from "#lib";
     import {faqItems, version} from "./seo.js";
+    import {highlight} from "./highlight.js";
 
     type ThemeMode = "auto" | "light" | "dark";
 
@@ -138,6 +139,7 @@
         `  Hover Me\n` +
         `</button>`
     );
+    let highlightedPlayground = $derived(highlight(playgroundGeneratedCode, "svelte"));
 
     const codeImport = "import { tooltip } from 'svelte-tooltip-gca';";
 
@@ -190,6 +192,14 @@ import type {
   TooltipThemeMode,
   TooltipPlacement
 } from 'svelte-tooltip-gca';`;
+
+    // Pre-highlighted markup for the static snippets (kept out of the template).
+    const htmlInstall = highlight(codeInstall, "bash");
+    const htmlImport = highlight(codeImport, "ts");
+    const htmlUse = highlight(codeUse, "svelte");
+    const htmlMinimal = highlight(codeMinimal, "svelte");
+    const htmlCustomTheme = highlight(codeCustomTheme, "ts");
+    const htmlExports = highlight(codeExports, "ts");
 
     function copyToClipboard(text: string, id: string) {
         if (typeof navigator !== "undefined" && navigator.clipboard) {
@@ -565,7 +575,7 @@ import type {
                                     {copiedId === 'playground' ? '✓ Copied' : 'Copy Code'}
                                 </button>
                             </div>
-                            <pre class="code"><code>{playgroundGeneratedCode}</code></pre>
+                            <pre class="code"><code>{@html highlightedPlayground}</code></pre>
                         </div>
                     </div>
                 </div>
@@ -589,7 +599,7 @@ import type {
                                 {copiedId === 'qs-install' ? '✓ Copied' : 'Copy'}
                             </button>
                         </div>
-                        <pre class="code"><code>{codeInstall}</code></pre>
+                        <pre class="code"><code>{@html htmlInstall}</code></pre>
                     </div>
                     <p class="hint">
                         Requires <code>svelte</code> ^5.0.0 as a peer dependency.
@@ -606,7 +616,7 @@ import type {
                                 {copiedId === 'qs-import' ? '✓ Copied' : 'Copy'}
                             </button>
                         </div>
-                        <pre class="code"><code>{codeImport}</code></pre>
+                        <pre class="code"><code>{@html htmlImport}</code></pre>
                     </div>
                     <p class="hint">
                         Works in SvelteKit, Vite, and any Svelte 5 app.
@@ -623,7 +633,7 @@ import type {
                                 {copiedId === 'qs-use' ? '✓ Copied' : 'Copy'}
                             </button>
                         </div>
-                        <pre class="code"><code>{codeUse}</code></pre>
+                        <pre class="code"><code>{@html htmlUse}</code></pre>
                     </div>
                     <p class="hint">
                         Pass a string, or an options object for full control.
@@ -645,7 +655,7 @@ import type {
                             {copiedId === 'qs-minimal' ? '✓ Copied' : 'Copy'}
                         </button>
                     </div>
-                    <pre class="code large"><code>{codeMinimal}</code></pre>
+                    <pre class="code large"><code>{@html htmlMinimal}</code></pre>
                 </div>
             </div>
         </section>
@@ -987,7 +997,7 @@ import type {
                             {copiedId === 'theme-code' ? '✓ Copied' : 'Copy'}
                         </button>
                     </div>
-                    <pre class="code large"><code>{codeCustomTheme}</code></pre>
+                    <pre class="code large"><code>{@html htmlCustomTheme}</code></pre>
                 </div>
             </div>
 
@@ -1225,7 +1235,7 @@ import type {
                             {copiedId === 'exports-code' ? '✓ Copied' : 'Copy'}
                         </button>
                     </div>
-                    <pre class="code large"><code>{codeExports}</code></pre>
+                    <pre class="code large"><code>{@html htmlExports}</code></pre>
                 </div>
             </div>
 
@@ -2163,6 +2173,47 @@ import type {
         font-size: 0.8rem;
     }
 
+    /* Syntax highlighting tokens. `{@html}` inserts raw HTML, so these must be
+       global; the colours are variables that follow the page's active theme. */
+    :global(.tok-keyword) {
+        color: var(--tok-keyword);
+    }
+
+    :global(.tok-string) {
+        color: var(--tok-string);
+    }
+
+    :global(.tok-number),
+    :global(.tok-constant) {
+        color: var(--tok-number);
+    }
+
+    :global(.tok-comment) {
+        color: var(--tok-comment);
+        font-style: italic;
+    }
+
+    :global(.tok-tag) {
+        color: var(--tok-tag);
+    }
+
+    :global(.tok-attr) {
+        color: var(--tok-attr);
+    }
+
+    :global(.tok-property),
+    :global(.tok-func) {
+        color: var(--tok-property);
+    }
+
+    :global(.tok-type) {
+        color: var(--tok-type);
+    }
+
+    :global(.tok-punct) {
+        color: var(--tok-punct);
+    }
+
     .grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -2555,6 +2606,17 @@ import type {
         --code-muted: #897a73;
         --code-control-bg: #f3e7e1;
         --code-control-hover: #ead9d1;
+        --tok-keyword: #a21caf;
+        --tok-string: #15803d;
+        --tok-number: #c2410c;
+        --tok-constant: #c2410c;
+        --tok-comment: #8a949a;
+        --tok-tag: #be123c;
+        --tok-attr: #0369a1;
+        --tok-property: #1d4ed8;
+        --tok-func: #1d4ed8;
+        --tok-type: #0f766e;
+        --tok-punct: #6b7280;
         --shadow-sm: 0 1px 2px rgba(27, 31, 36, 0.06);
         --shadow-md: 0 14px 34px rgba(27, 31, 36, 0.09);
         --shadow-lg: 0 24px 64px rgba(27, 31, 36, 0.13);
@@ -2588,6 +2650,17 @@ import type {
         --code-muted: #aeb7bf;
         --code-control-bg: #2c343b;
         --code-control-hover: #3b454e;
+        --tok-keyword: #f0abfc;
+        --tok-string: #86efac;
+        --tok-number: #fdba74;
+        --tok-constant: #fdba74;
+        --tok-comment: #7f8a93;
+        --tok-tag: #fda4af;
+        --tok-attr: #7dd3fc;
+        --tok-property: #93c5fd;
+        --tok-func: #93c5fd;
+        --tok-type: #5eead4;
+        --tok-punct: #aeb7bf;
         --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
         --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.25);
         --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.34);
@@ -2617,6 +2690,17 @@ import type {
             --code-muted: #aeb7bf;
             --code-control-bg: #2c343b;
             --code-control-hover: #3b454e;
+            --tok-keyword: #f0abfc;
+            --tok-string: #86efac;
+            --tok-number: #fdba74;
+            --tok-constant: #fdba74;
+            --tok-comment: #7f8a93;
+            --tok-tag: #fda4af;
+            --tok-attr: #7dd3fc;
+            --tok-property: #93c5fd;
+            --tok-func: #93c5fd;
+            --tok-type: #5eead4;
+            --tok-punct: #aeb7bf;
             --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
             --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.25);
             --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.34);
