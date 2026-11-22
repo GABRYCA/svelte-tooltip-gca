@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded dev dependencies.
 - Upgraded the local Bun toolchain from 1.4.4 to 1.4.5.
 
+### Fixed
+
+- Fixed the GitHub Pages deployment failing in `prepack` with `spawn bun ENOENT`. Committing `bun.lock` alongside `package-lock.json` made publint's auto-detection pick Bun for packing, but the deploy workflow installs dependencies with `npm ci` and has no Bun binary. Publint is now pinned to `publint --pack npm`, so packaging is deterministic in every environment.
+
 ## [1.1.0] - 2026-10-18
 
 ### Added
