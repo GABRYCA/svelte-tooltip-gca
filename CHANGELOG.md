@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added to Demo code blocks appropriate syntax highlighting.
 - Upgraded dev dependencies.
+- Upgraded the local Bun toolchain from 1.4.4 to 1.4.5.
 
 ## [1.1.0] - 2026-10-18
 

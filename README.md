@@ -40,7 +40,7 @@ or with Bun:
 bun add svelte-tooltip-gca
 ```
 
-Peer dependency: `svelte` ^5.0.0. Zero runtime dependencies. Works on Node.js (npm) and Bun 1.4+.
+Peer dependency: `svelte` ^5.0.0. Zero runtime dependencies. Works on Node.js (npm) and Bun; the toolchain is validated on Bun 1.4.5 and Node.js 25+.
 
 ---
 
